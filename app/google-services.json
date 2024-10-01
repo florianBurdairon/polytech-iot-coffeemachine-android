@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "745127148397",
+    "firebase_url": "https://polytech-iot---coffee-machine-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "polytech-iot---coffee-machine",
+    "storage_bucket": "polytech-iot---coffee-machine.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:745127148397:android:6dbc0ca4395e4f09e0f864",
+        "android_client_info": {
+          "package_name": "fr.polytech.coffeemachineapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "745127148397-5vnmiqsve9mqhsap7l1hdcmfn7jtthkh.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "fr.polytech.coffeemachineapp",
+            "certificate_hash": "264939ba60489cd7cbff1667867c01424cf9127c"
+          }
+        },
+        {
+          "client_id": "745127148397-ddisi3cs1ujmqaers7b976pk2i1kk6ue.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD52wnj6jGeoI5EgnA9gkJwyfjXf9GNc0o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "745127148397-ddisi3cs1ujmqaers7b976pk2i1kk6ue.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
