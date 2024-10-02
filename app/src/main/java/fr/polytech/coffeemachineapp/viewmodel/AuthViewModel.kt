@@ -65,7 +65,6 @@ class AuthViewModel : ViewModel() {
             try {
                 auth.sendPasswordResetEmail(email).await()
                 onPasswordResetEmailSent()
-                _authState.update { AuthState.Authenticated(auth.currentUser) }
             } catch (e: Exception) {
                 _authState.update { AuthState.Error(e.message ?: "An error occurred while sending the password reset email") }
             }
