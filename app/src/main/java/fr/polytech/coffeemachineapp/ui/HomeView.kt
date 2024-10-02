@@ -12,47 +12,51 @@ import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import fr.polytech.coffeemachineapp.ui.destinations.LoginViewDestination
+import fr.polytech.coffeemachineapp.viewmodel.AuthState
+import fr.polytech.coffeemachineapp.viewmodel.AuthViewModel
+import org.koin.androidx.compose.getViewModel
 
 @Destination(start = true)
 @Composable
 fun HomeView(navigator: DestinationsNavigator) {
-    val user by remember { mutableStateOf(Firebase.auth.currentUser) }
+    val authViewModel: AuthViewModel = getViewModel()
+    val authState by authViewModel.authState.collectAsState()
+
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        if (user == null) {
-            ElevatedButton(
-                onClick = {
-                    navigator.navigate(LoginViewDestination)
-                },
-                shape = RoundedCornerShape(15.dp),
-                modifier = Modifier
-                    .padding(5.dp)
-                    .fillMaxWidth()
-                    .height(50.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                )
-            ) {
-                Text(text = "Sign in")
+        when (authState) {
+            is AuthState.Authenticated -> {
+                Text("Hello ${(authState as AuthState.Authenticated).user?.displayName}")
             }
-        }
-        else {
-            Text("Hello ${user?.displayName}")
+            else -> {
+                ElevatedButton(
+                    onClick = {
+                        navigator.navigate(LoginViewDestination)
+                    },
+                    shape = RoundedCornerShape(15.dp),
+                    modifier = Modifier
+                        .padding(5.dp)
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    )
+                ) {
+                    Text(text = "Sign in")
+                }
+            }
         }
     }
 }
