@@ -34,7 +34,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.navigation.compose.rememberNavController
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
@@ -57,11 +56,6 @@ fun LoginView(navigator: DestinationsNavigator, snackbarHostState: SnackbarHostS
 
     val token = stringResource(id = R.string.web_client_id)
     val context = LocalContext.current
-
-    val navController = rememberNavController()
-    val navBackStackEntry = navController.currentBackStackEntry
-
-    val previousDestination = navBackStackEntry?.destination
 
     val launcher = rememberFirebaseAuthLauncher(
         onAuthError = { _ ->
