@@ -2,13 +2,13 @@ package fr.polytech.coffeemachineapp.ui
 
 import android.content.Intent
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -96,25 +96,8 @@ fun LoginView(navigator: DestinationsNavigator, snackbarHostState: SnackbarHostS
                 Text(text = "Sign in with Google")
             }
         } else {
-            Text(text = "You are signed in as ${user?.displayName}")
-            Spacer(modifier = Modifier.height(16.dp))
-            ElevatedButton(
-                onClick = {
-                    Firebase.auth.signOut()
-                    user = null
-                },
-                shape = RoundedCornerShape(15.dp),
-                modifier = Modifier
-                    .padding(5.dp)
-                    .fillMaxWidth()
-                    .height(50.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                )
-            ) {
-                Text(text = "Sign out")
-            }
+            Toast.makeText(context, "Already signed in", Toast.LENGTH_SHORT).show()
+            navigator.navigate(HomeViewDestination)
         }
     }
 }
