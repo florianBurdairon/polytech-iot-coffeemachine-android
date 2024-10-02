@@ -64,6 +64,7 @@ class AuthViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 auth.sendPasswordResetEmail(email).await()
+                onPasswordResetEmailSent()
                 _authState.update { AuthState.Authenticated(auth.currentUser) }
             } catch (e: Exception) {
                 _authState.update { AuthState.Error(e.message ?: "An error occurred while sending the password reset email") }
@@ -86,10 +87,6 @@ class AuthViewModel : ViewModel() {
     fun signOut() {
         auth.signOut()
         _authState.update { AuthState.Unauthenticated }
-    }
-
-    fun getCurrentUser(): FirebaseUser? {
-        return auth.currentUser
     }
 
     fun updateDisplayName(displayName: String) {
@@ -128,8 +125,8 @@ class AuthViewModel : ViewModel() {
 }
 
 sealed class AuthState {
-    object Unauthenticated : AuthState()
-    object Loading : AuthState()
+    data object Unauthenticated : AuthState()
+    data object Loading : AuthState()
     data class Authenticated(val user: FirebaseUser?) : AuthState()
     data class Updating(val user: FirebaseUser?) : AuthState()
     data class Error(val message: String) : AuthState()

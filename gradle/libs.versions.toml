@@ -24,7 +24,7 @@ appcompat = "1.7.0"
 material = "1.12.0"
 activity = "1.9.2"
 constraintlayout = "2.1.4"
-databindingAdapters = "8.6.1"
+databindingAdapters = "8.7.0"
 googleid = "1.1.1"
 
 [libraries]
