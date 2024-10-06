@@ -2,6 +2,7 @@ package fr.polytech.coffeemachineapp
 
 import android.app.Application
 import fr.polytech.coffeemachineapp.di.authModule
+import fr.polytech.coffeemachineapp.di.dbModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.GlobalContext.startKoin
@@ -14,7 +15,8 @@ class MainApplication : Application() {
             androidLogger()
             androidContext(this@MainApplication)
             modules(
-                authModule
+                authModule,
+                dbModule
             )
         }
     }

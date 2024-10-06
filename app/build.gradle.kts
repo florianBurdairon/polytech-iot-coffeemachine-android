@@ -67,6 +67,7 @@ dependencies {
     implementation(libs.androidx.databinding.adapters)
     implementation(libs.googleid)
     implementation(libs.firebase.auth)
+    implementation(libs.firebase.database)
     ksp(libs.compose.destinations.ksp)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.activity.ktx)

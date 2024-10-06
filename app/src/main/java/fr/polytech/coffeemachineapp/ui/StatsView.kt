@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
@@ -22,6 +23,7 @@ import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import fr.polytech.coffeemachineapp.ui.destinations.LoginViewDestination
 import fr.polytech.coffeemachineapp.viewmodel.AuthState
 import fr.polytech.coffeemachineapp.viewmodel.AuthViewModel
+import fr.polytech.coffeemachineapp.viewmodel.DeviceViewModel
 import org.koin.androidx.compose.getViewModel
 
 @Destination
@@ -29,6 +31,8 @@ import org.koin.androidx.compose.getViewModel
 fun StatsView(navigator: DestinationsNavigator) {
     val authViewModel: AuthViewModel = getViewModel()
     val authState by authViewModel.authState.collectAsState()
+    val deviceViewModel: DeviceViewModel = getViewModel()
+    val deviceState by deviceViewModel.devices.collectAsState()
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -37,7 +41,15 @@ fun StatsView(navigator: DestinationsNavigator) {
     ) {
         when (authState) {
             is AuthState.Authenticated -> {
-
+                LazyColumn {
+                    items(deviceState.size) { deviceIndex ->
+                        val device = deviceState[deviceIndex]
+                        Text(text = "Device $deviceIndex :" +
+                                "\n\t${device.name}" +
+                                "\n\t${device.mac}" +
+                                "\n\t${device.status}")
+                    }
+                }
             }
             else -> {
                 ElevatedButton(
