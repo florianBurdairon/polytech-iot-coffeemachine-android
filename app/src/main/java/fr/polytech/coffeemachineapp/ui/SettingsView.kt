@@ -1,5 +1,6 @@
 package fr.polytech.coffeemachineapp.ui
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,6 +17,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
@@ -31,6 +33,8 @@ fun SettingsView(navigator: DestinationsNavigator) {
     val authViewModel: AuthViewModel = getViewModel()
     val authState by authViewModel.authState.collectAsState()
 
+    val context = LocalContext.current
+
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -41,7 +45,10 @@ fun SettingsView(navigator: DestinationsNavigator) {
                 ElevatedButton(
                     onClick = {
                         authViewModel.signOut()
-                        navigator.navigate(HomeViewDestination)
+                        navigator.navigate(HomeViewDestination) {
+                            Toast.makeText(context, "You sign out", Toast.LENGTH_SHORT).show()
+                            popUpTo(0)
+                        } //TODO Pop all back stack
                     },
                     shape = RoundedCornerShape(15.dp),
                     modifier = Modifier
