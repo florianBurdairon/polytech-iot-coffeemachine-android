@@ -3,6 +3,7 @@ package fr.polytech.coffeemachineapp.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.AuthCredential
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.UserProfileChangeRequest
@@ -15,8 +16,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
-class AuthViewModel : ViewModel() {
-    private val auth = Firebase.auth
+class AuthViewModel(private val auth: FirebaseAuth) : ViewModel() {
 
     private val _authState = MutableStateFlow<AuthState>(AuthState.Unauthenticated)
     val authState: StateFlow<AuthState> = _authState.asStateFlow()

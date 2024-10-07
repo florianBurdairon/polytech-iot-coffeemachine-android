@@ -1,10 +1,14 @@
 package fr.polytech.coffeemachineapp.di
 
 
-import fr.polytech.coffeemachineapp.viewmodel.AuthViewModel
-import org.koin.androidx.viewmodel.dsl.viewModel
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import org.koin.dsl.module
 
 val authModule = module {
-    viewModel { AuthViewModel() }
+    fun provideFirebaseAuth() : FirebaseAuth {
+        return Firebase.auth
+    }
+    single { provideFirebaseAuth() }
 }
