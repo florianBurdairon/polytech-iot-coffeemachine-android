@@ -47,8 +47,8 @@ fun SettingsView(navigator: DestinationsNavigator) {
                         authViewModel.signOut()
                         navigator.navigate(HomeViewDestination) {
                             Toast.makeText(context, "You sign out", Toast.LENGTH_SHORT).show()
-                            popUpTo(0)
-                        } //TODO Pop all back stack
+                            popUpTo(NavGraphs.root.startRoute.route) { inclusive = true }
+                        }
                     },
                     shape = RoundedCornerShape(15.dp),
                     modifier = Modifier
