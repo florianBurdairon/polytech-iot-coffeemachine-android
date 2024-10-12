@@ -6,9 +6,13 @@ import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -17,11 +21,17 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialTheme.colorScheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -31,8 +41,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -88,6 +100,11 @@ fun LoginView(navigator: DestinationsNavigator, snackbarHostState: SnackbarHostS
                     snackbarHostState,
                     snackBarScope
                 )
+                HorizontalDivider(
+                    color = colorScheme.primary,
+                    thickness = 1.dp,
+                    modifier = Modifier.padding(16.dp)
+                )
                 ElevatedButton(
                     onClick = {
                         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -100,12 +117,12 @@ fun LoginView(navigator: DestinationsNavigator, snackbarHostState: SnackbarHostS
                     },
                     shape = RoundedCornerShape(15.dp),
                     modifier = Modifier
-                        .padding(5.dp)
+                        .padding(32.dp)
                         .fillMaxWidth()
                         .height(50.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
+                        containerColor = colorScheme.primaryContainer,
+                        contentColor = colorScheme.onPrimaryContainer
                     )
                 ) {
                     Text(text = "Sign in with Google")
@@ -119,10 +136,16 @@ fun LoginView(navigator: DestinationsNavigator, snackbarHostState: SnackbarHostS
                 authViewModel.errorHandled()
             }
             is AuthState.Loading -> {
-                CircularProgressIndicator()
+                CircularProgressIndicator(
+                    color = colorScheme.primary,
+                    modifier = Modifier.padding(16.dp)
+                )
             }
             is AuthState.Updating -> {
-                CircularProgressIndicator()
+                CircularProgressIndicator(
+                    color = colorScheme.primary,
+                    modifier = Modifier.padding(16.dp)
+                )
             }
         }
     }
@@ -156,45 +179,89 @@ fun EmailPasswordLoginComponent(
     val authViewModel: AuthViewModel = getViewModel()
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    Column {
-        TextField(
+
+    val buttonColors = ButtonDefaults.buttonColors(
+        containerColor = colorScheme.primaryContainer,
+        contentColor = colorScheme.onPrimaryContainer
+    )
+    val textFieldColors = OutlinedTextFieldDefaults.colors(
+        focusedBorderColor = colorScheme.primary,
+        unfocusedBorderColor = colorScheme.primary,
+        focusedLabelColor = colorScheme.primary,
+        unfocusedLabelColor = colorScheme.primary,
+        focusedTextColor = colorScheme.primary,
+        unfocusedTextColor = colorScheme.primary,
+        focusedPlaceholderColor = colorScheme.primary,
+        unfocusedPlaceholderColor = colorScheme.primary,
+        cursorColor = colorScheme.primary
+    )
+
+    Column (
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        OutlinedTextField(
             value = email,
             onValueChange = { email = it },
-            label = { Text("Email") }
+            label = { Text("Email") },
+            colors = textFieldColors,
+            shape = RoundedCornerShape(15.dp),
+            modifier = Modifier.fillMaxWidth().padding(start = 32.dp, end = 32.dp, top = 16.dp, bottom = 8.dp)
         )
-        TextField(
+        OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("Password") }
+            label = { Text("Password") },
+            colors = textFieldColors,
+            shape = RoundedCornerShape(15.dp),
+            modifier = Modifier.fillMaxWidth().padding(start = 32.dp, end = 32.dp, top = 8.dp, bottom = 16.dp)
         )
-        Row {
-            Button(
-                onClick = {
-                    if (email.isEmpty() || password.isEmpty()) {
-                        snackBarScope.launch {
-                            snackbarHostState.showSnackbar("Please enter email and password")
-                        }
-                        return@Button
+        ElevatedButton(
+            onClick = {
+                if (email.isEmpty() || password.isEmpty()) {
+                    snackBarScope.launch {
+                        snackbarHostState.showSnackbar("Please enter email and password")
                     }
-                    authViewModel.signInWithEmailAndPassword(email, password)
+                    return@ElevatedButton
                 }
-            ) {
-                Text("Login")
-            }
-            Button(
-                onClick = {
-                    if (email.isEmpty() || password.isEmpty()) {
-                        snackBarScope.launch {
-                            snackbarHostState.showSnackbar("Please enter email and password")
-                        }
-                        return@Button
+                authViewModel.signInWithEmailAndPassword(email, password)
+            },
+            shape = RoundedCornerShape(15.dp),
+            modifier = Modifier
+                .padding(start = 32.dp, end = 32.dp, top = 16.dp, bottom = 8.dp)
+                .fillMaxWidth()
+                .height(50.dp),
+            colors = buttonColors
+        ) {
+            Text("Login")
+        }
+
+        ElevatedButton(
+            onClick = {
+                if (email.isEmpty() || password.isEmpty()) {
+                    snackBarScope.launch {
+                        snackbarHostState.showSnackbar("Please enter email and password")
                     }
-                    authViewModel.createUserWithEmailAndPassword(email, password)
+                    return@ElevatedButton
                 }
-            ) {
-                Text("Register")
-            }
-            Button(onClick = {
+                authViewModel.createUserWithEmailAndPassword(email, password)
+            },
+            shape = RoundedCornerShape(15.dp),
+            modifier = Modifier
+                .padding(start = 32.dp, end = 32.dp, top = 16.dp, bottom = 8.dp)
+                .fillMaxWidth()
+                .height(50.dp),
+            colors = buttonColors
+        ) {
+            Text("Register")
+        }
+
+        Text(
+            text = "Reset password",
+            color = colorScheme.primary,
+            style = MaterialTheme.typography.bodyMedium,
+            textDecoration = TextDecoration.Underline,
+            modifier = Modifier.padding(16.dp).clickable {
                 if (email.isNotEmpty()) {
                     authViewModel.resetPassword(email) {
                         snackBarScope.launch {
@@ -206,9 +273,7 @@ fun EmailPasswordLoginComponent(
                         snackbarHostState.showSnackbar("Please enter email")
                     }
                 }
-            }) {
-                Text("Reset password")
             }
-        }
+        )
     }
 }

@@ -50,7 +50,6 @@ class MainActivity : ComponentActivity() {
                     snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
                     bottomBar = {
                         NavigationBar {
-                            Log.d("BottomNavItem", "first item: ${items.first()}")
                             items.forEach { item ->
                                 NavigationBarItem(
                                     icon = {

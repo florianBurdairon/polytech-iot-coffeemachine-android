@@ -58,12 +58,12 @@ fun StatsView(navigator: DestinationsNavigator) {
                     },
                     shape = RoundedCornerShape(15.dp),
                     modifier = Modifier
-                        .padding(5.dp)
+                        .padding(32.dp)
                         .fillMaxWidth()
                         .height(50.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 ) {
                     Text(text = "Sign in")
