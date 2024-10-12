@@ -20,7 +20,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import fr.polytech.coffeemachineapp.R
 import fr.polytech.coffeemachineapp.model.Device
@@ -45,7 +44,7 @@ fun DeviceItem(device: Device, onDeviceClick: (Device) -> Unit) {
         .fillMaxWidth()
         .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
         .height(64.dp)
-        .background(MaterialTheme.colorScheme.primaryContainer, shape = MaterialTheme.shapes.medium)
+        .background(colorScheme.primaryContainer, shape = MaterialTheme.shapes.medium)
         .clickable { onDeviceClick(device) },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Start

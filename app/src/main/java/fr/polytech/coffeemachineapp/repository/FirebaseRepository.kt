@@ -12,7 +12,7 @@ interface FirebaseRepository {
     fun removeListener(path: String, listener: ValueEventListener)
 }
 
-class FirebaseRepositoryImpl(private val database: FirebaseDatabase) : FirebaseRepository {
+class FirebaseRepositoryImpl(database: FirebaseDatabase) : FirebaseRepository {
     private val dataRef = database.reference
 
     override suspend fun sendData(data: Any, path: String) {
