@@ -1,5 +1,6 @@
 package fr.polytech.coffeemachineapp.ui
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -10,6 +11,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -22,6 +25,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.ramcosta.composedestinations.annotation.Destination
@@ -43,6 +47,8 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
     val devices by deviceViewModel.devices.collectAsState()
     val sensorViewModel: SensorViewModel = getViewModel()
     val sensors by sensorViewModel.sensorsState.collectAsState()
+
+    val context = LocalContext.current
 
     val selectedDeviceMac by remember { mutableStateOf(mac) }
     val selectedDevice by remember(devices, selectedDeviceMac) {
@@ -152,6 +158,51 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
                         }
                     )
                 }
+            }
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Button(
+                modifier = Modifier
+                    .height(100.dp)
+                    .weight(0.5f)
+                    .padding(start = 16.dp, top = 16.dp, end = 8.dp, bottom = 16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    disabledContainerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                    disabledContentColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f)
+                ),
+                shape = MaterialTheme.shapes.medium,
+                enabled = ((selectedSensor?.data?.waterlevel ?: 0.0) > 0.25 && selectedSensor?.data?.presence == true),
+                onClick = {
+                    Toast.makeText(context, "1 Cup requested", Toast.LENGTH_SHORT).show()
+                }
+            ) {
+                Text(text = "1 Cup", style = MaterialTheme.typography.titleLarge)
+            }
+            Button(
+                modifier = Modifier
+                    .height(100.dp)
+                    .weight(0.5f)
+                    .padding(start = 8.dp, top = 16.dp, end = 16.dp, bottom = 16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    disabledContainerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                    disabledContentColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f)
+                ),
+                shape = MaterialTheme.shapes.medium,
+                enabled = ((selectedSensor?.data?.waterlevel ?: 0.0) > 0.25 && selectedSensor?.data?.presence == true),
+                onClick = {
+                    Toast.makeText(context, "2 Cups requested", Toast.LENGTH_SHORT).show()
+                }
+            ) {
+                Text(text = "2 Cups", style = MaterialTheme.typography.titleLarge)
             }
         }
     }
