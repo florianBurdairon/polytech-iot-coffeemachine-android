@@ -29,7 +29,7 @@ fun DeviceList(devices: List<Device>, onDeviceClick: (Device) -> Unit) {
     LazyColumn {
         item {
             // Implement the UI for the header
-            Text(text = "List of devices", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(16.dp))
+            Text(text = "List of devices", style = MaterialTheme.typography.headlineLarge, modifier = Modifier.padding(16.dp))
         }
         items(devices.size) { deviceIndex ->
             DeviceItem(device = devices[deviceIndex], onDeviceClick = onDeviceClick)
@@ -49,40 +49,36 @@ fun DeviceItem(device: Device, onDeviceClick: (Device) -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Start
     ) {
-        Text(text = device.name, color = colorScheme.onPrimaryContainer, modifier = Modifier.padding(start = 8.dp))
+        Text(text = device.name, style = MaterialTheme.typography.titleLarge, color = colorScheme.onPrimaryContainer, modifier = Modifier.padding(start = 16.dp))
         Spacer(modifier = Modifier.weight(1f))
-        DeviceStatusIcon(status = device.status)
+        DeviceStatusIcon(status = device.status, modifier = Modifier.padding(end = 16.dp))
     }
 }
 
 @Composable
-fun DeviceStatusIcon(status: String) {
+fun DeviceStatusIcon(status: String, modifier: Modifier = Modifier) {
     when (status) {
         "online" -> Icon(
             painter = painterResource(id = R.drawable.check_circle_24dp),
             contentDescription = "device status : $status",
-            modifier = Modifier.padding(end = 8.dp),
+            modifier = modifier,
             tint = colorScheme.onPrimaryContainer
         )
         "offline" -> Icon(
             painter = painterResource(id = R.drawable.cancel_24dp),
             contentDescription = "device status : $status",
-            modifier = Modifier.padding(end = 8.dp),
+            modifier = modifier,
             tint = colorScheme.onPrimaryContainer
         )
         "busy" -> CircularProgressIndicator(
             color = colorScheme.onPrimaryContainer,
-            modifier = Modifier
-                .padding(end = 8.dp)
-                .size(20.dp)
+            modifier = modifier.size(20.dp)
         )
         else -> {
             Log.d("DeviceStatusIcon", "Unknown status: $status")
             CircularProgressIndicator(
                 color = colorScheme.onPrimaryContainer,
-                modifier = Modifier
-                    .padding(end = 8.dp)
-                    .size(20.dp)
+                modifier = modifier.size(20.dp)
             )
         }
 

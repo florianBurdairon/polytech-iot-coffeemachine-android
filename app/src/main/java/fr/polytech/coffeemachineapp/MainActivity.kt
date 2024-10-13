@@ -4,9 +4,11 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -19,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import com.ramcosta.composedestinations.DestinationsNavHost
@@ -52,12 +55,14 @@ class MainActivity : ComponentActivity() {
                             items.forEach { item ->
                                 NavigationBarItem(
                                     icon = {
-                                        Icon(
-                                            item.icon,
-                                            contentDescription = item.label
-                                        )
+                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                            Icon(
+                                                item.icon,
+                                                contentDescription = item.label
+                                            )
+                                            Text(item.label, style = MaterialTheme.typography.labelSmall)
+                                        }
                                     },
-                                    label = { Text(item.label) },
                                     selected = currentDestination == item.route,
                                     onClick = {
                                         selectedItem = item.id

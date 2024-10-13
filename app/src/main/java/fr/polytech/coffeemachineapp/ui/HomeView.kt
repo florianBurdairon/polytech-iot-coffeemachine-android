@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import fr.polytech.coffeemachineapp.ui.components.DeviceList
+import fr.polytech.coffeemachineapp.ui.destinations.DeviceDetailViewDestination
 import fr.polytech.coffeemachineapp.ui.destinations.LoginViewDestination
 import fr.polytech.coffeemachineapp.viewmodel.AuthState
 import fr.polytech.coffeemachineapp.viewmodel.AuthViewModel
@@ -64,7 +65,7 @@ fun HomeView(navigator: DestinationsNavigator) {
                 Column (modifier = Modifier.padding(innerPadding)) {
                     DeviceList(devices = devices) {
                         // Handle device click
-                        Toast.makeText(context, "Device clicked: ${it.mac}", Toast.LENGTH_SHORT).show()
+                        navigator.navigate(DeviceDetailViewDestination(it.mac))
                     }
                 }
             }

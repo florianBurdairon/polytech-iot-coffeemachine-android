@@ -1,5 +1,5 @@
 [versions]
-agp = "8.6.1"
+agp = "8.7.0"
 koinAndroidxCompose = "3.4.6"
 koinCore = "3.4.3"
 kotlin = "1.9.0"
