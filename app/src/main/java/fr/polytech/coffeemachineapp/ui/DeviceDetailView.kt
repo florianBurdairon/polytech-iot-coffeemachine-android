@@ -78,7 +78,7 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
                 contentDescription = "Back",
-                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                tint = MaterialTheme.colorScheme.onBackground
             )
             Text(
                 text = "Back",
@@ -89,7 +89,7 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
             Icon(
                 imageVector = Icons.Default.Settings,
                 contentDescription = "Settings",
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                tint = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.clickable {
                     // TODO Open settings for the selected device
                     Toast.makeText(context, "Settings for ${selectedDevice?.name}", Toast.LENGTH_SHORT).show()
