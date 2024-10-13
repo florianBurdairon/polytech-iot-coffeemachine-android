@@ -128,7 +128,7 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                     Text(
-                        text = "${selectedSensor?.data?.waterlevel?.times(100) ?: 0}%",
+                        text = "${selectedSensor?.data?.waterlevel?.times(100) ?: "--"}%",
                     )
                 }
                 VerticalDivider(
@@ -145,7 +145,11 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                     Text(
-                        text = if (selectedSensor?.data?.presence == true) "Yes" else "No",
+                        text = when (selectedSensor?.data?.presence) {
+                            true -> "Yes"
+                            false -> "No"
+                            else -> "--"
+                        }
                     )
                 }
             }
