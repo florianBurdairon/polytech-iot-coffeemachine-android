@@ -49,6 +49,7 @@ fun DeviceItem(device: Device, onDeviceClick: (Device) -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Start
     ) {
+        Icon(painter = painterResource(id = R.drawable.coffee_maker), contentDescription = "device icon", modifier = Modifier.padding(start = 16.dp))
         Text(text = device.name, style = MaterialTheme.typography.titleLarge, color = colorScheme.onPrimaryContainer, modifier = Modifier.padding(start = 16.dp))
         Spacer(modifier = Modifier.weight(1f))
         DeviceStatusIcon(status = device.status, modifier = Modifier.padding(end = 16.dp))
