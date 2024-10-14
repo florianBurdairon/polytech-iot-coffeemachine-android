@@ -20,8 +20,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,18 +48,21 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
     val authViewModel: AuthViewModel = getViewModel()
     val authState by authViewModel.authState.collectAsState()
     val deviceViewModel: DeviceViewModel = getViewModel()
-    val devices by deviceViewModel.devices.collectAsState()
+    val selectedDevice by deviceViewModel.selectedDevice.collectAsState()
     val sensorViewModel: SensorViewModel = getViewModel()
-    val sensors by sensorViewModel.sensorsState.collectAsState()
+    val selectedSensor by sensorViewModel.selectedSensorState.collectAsState()
 
     val context = LocalContext.current
 
     val selectedDeviceMac by remember { mutableStateOf(mac) }
-    val selectedDevice by remember(devices, selectedDeviceMac) {
-        derivedStateOf { devices.find { it.mac == selectedDeviceMac } }
-    }
-    val selectedSensor by remember(sensors, selectedDeviceMac) {
-        derivedStateOf { sensors.find { it.mac == selectedDeviceMac } }
+
+    DisposableEffect(Unit) {
+        deviceViewModel.selectDevice(selectedDeviceMac)
+        sensorViewModel.selectSensor(selectedDeviceMac)
+        onDispose {
+            deviceViewModel.unselectDevice()
+            sensorViewModel.unselectSensor()
+        }
     }
 
     if (authState !is AuthState.Authenticated) {
@@ -194,7 +197,9 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
                     disabledContentColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f)
                 ),
                 shape = MaterialTheme.shapes.medium,
-                enabled = ((selectedSensor?.data?.waterlevel ?: 0.0) > 0.25 && selectedSensor?.data?.presence == true),
+                enabled = (selectedSensor?.data?.waterlevel ?: 0.0) > 0.25
+                        && selectedSensor?.data?.presence == true
+                        && selectedDevice?.status == "online",
                 onClick = {
                     Toast.makeText(context, "1 Coffee requested", Toast.LENGTH_SHORT).show()
                 }
@@ -214,7 +219,9 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
                     disabledContentColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f)
                 ),
                 shape = MaterialTheme.shapes.medium,
-                enabled = ((selectedSensor?.data?.waterlevel ?: 0.0) > 0.25 && selectedSensor?.data?.presence == true),
+                enabled = (selectedSensor?.data?.waterlevel ?: 0.0) > 0.25
+                        && selectedSensor?.data?.presence == true
+                        && selectedDevice?.status == "online",
                 onClick = {
                     Toast.makeText(context, "2 Coffees requested", Toast.LENGTH_SHORT).show()
                 }
