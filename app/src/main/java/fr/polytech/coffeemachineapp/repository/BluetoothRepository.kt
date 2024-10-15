@@ -29,6 +29,7 @@ class BluetoothRepositoryImpl(
     private var bluetoothSocket: BluetoothSocket? = null
     private var inputStream: InputStream? = null
     private var outputStream: OutputStream? = null
+    private var isListeningForData = false
 
     // Connection state
     private val _connectionState = MutableLiveData(ConnectionState.Disconnected)
@@ -39,6 +40,23 @@ class BluetoothRepositoryImpl(
     val receivedData: LiveData<String> = _receivedData
 
     private val MY_UUID = "00001101-0000-1000-8000-00805F9B34FB"
+
+    val bluetoothListenerThread = Thread {
+        while (isListeningForData) {
+            try {
+                val bytes = ByteArray(1024)
+                val bytesRead = inputStream?.read(bytes)
+
+                if (bytesRead != null && bytesRead > 0) {
+                    val receivedString = String(bytes, 0, bytesRead)
+                    _receivedData.postValue(receivedString)
+                }
+            } catch (e: IOException) {
+                // Handle receive error
+                break
+            }
+        }
+    }
 
     enum class ConnectionState {
         Disconnected, Connecting, Connected
@@ -84,6 +102,7 @@ class BluetoothRepositoryImpl(
             inputStream?.close()
             outputStream?.close()
 
+            isListeningForData = false
             _connectionState.value = ConnectionState.Disconnected
         } catch (e: IOException) {
             // Handle disconnection error
@@ -102,21 +121,7 @@ class BluetoothRepositoryImpl(
     }
 
     private fun startListeningForData() {
-        Thread {
-            while (true) {
-                try {
-                    val bytes = ByteArray(1024)
-                    val bytesRead = inputStream?.read(bytes)
-
-                    if (bytesRead != null && bytesRead > 0) {
-                        val receivedString = String(bytes, 0, bytesRead)
-                        _receivedData.postValue(receivedString)
-                    }
-                } catch (e: IOException) {
-                    // Handle receive error
-                    break
-                }
-            }
-        }.start()
+        isListeningForData = true
+        bluetoothListenerThread.start()
     }
 }
