@@ -4,7 +4,6 @@ import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -41,6 +40,7 @@ import fr.polytech.coffeemachineapp.ui.components.DeviceList
 import fr.polytech.coffeemachineapp.ui.components.NewDeviceButton
 import fr.polytech.coffeemachineapp.ui.destinations.DeviceDetailViewDestination
 import fr.polytech.coffeemachineapp.ui.destinations.LoginViewDestination
+import fr.polytech.coffeemachineapp.ui.destinations.BluetoothListViewDestination
 import fr.polytech.coffeemachineapp.viewmodel.AuthState
 import fr.polytech.coffeemachineapp.viewmodel.AuthViewModel
 import fr.polytech.coffeemachineapp.viewmodel.DeviceViewModel
@@ -58,7 +58,6 @@ fun HomeView(navigator: DestinationsNavigator, snackbarHostState: SnackbarHostSt
 
     val context = LocalContext.current
 
-    var showRationale by rememberSaveable { mutableStateOf(false) }
     var showSettingsDialog by rememberSaveable { mutableStateOf(false) }
 
     val launcher = rememberLauncherForActivityResult(
@@ -87,12 +86,7 @@ fun HomeView(navigator: DestinationsNavigator, snackbarHostState: SnackbarHostSt
     }
 
     BluetoothDialog(
-        showRationale,
         showSettingsDialog,
-        launcher,
-        onDismissRationale = {
-            showRationale = false
-        },
         onDismissSettings = {
             showSettingsDialog = false
         }
@@ -108,14 +102,12 @@ fun HomeView(navigator: DestinationsNavigator, snackbarHostState: SnackbarHostSt
                         // Permission already granted, proceed with Bluetooth operations
                         launchBluetoothSetup(navigator, context)
                     } else {
-                        if (!ActivityCompat.shouldShowRequestPermissionRationale(context as Activity, Manifest.permission.BLUETOOTH_CONNECT)) {
-                            // First time requesting permission, show rationale dialog
-                            Log.d("HomeView", "First time requesting permission")
-                            showRationale = true // Show rationale dialog
+                        if (ActivityCompat.shouldShowRequestPermissionRationale(context as Activity, Manifest.permission.BLUETOOTH_CONNECT)) {
+                            // Already denied, show dialog
+                            showSettingsDialog = true // Show dialog
                         } else {
-                            // Second time requesting permission, show settings dialog
-                            Log.d("HomeView", "Second time requesting permission")
-                            showSettingsDialog = true // Show settings dialog
+                            // First time requesting permission
+                            launcher.launch(Manifest.permission.BLUETOOTH_CONNECT)
                         }
                     }
                 }
@@ -160,6 +152,5 @@ fun HomeView(navigator: DestinationsNavigator, snackbarHostState: SnackbarHostSt
 }
 
 fun launchBluetoothSetup(navigator: DestinationsNavigator, context: Context) {
-    // Navigate to the Bluetooth setup screen
-    Toast.makeText(context, "Launching Bluetooth setup", Toast.LENGTH_SHORT).show()
+    navigator.navigate(BluetoothListViewDestination)
 }
