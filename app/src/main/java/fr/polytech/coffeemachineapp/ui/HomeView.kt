@@ -2,9 +2,7 @@ package fr.polytech.coffeemachineapp.ui
 
 import android.Manifest
 import android.app.Activity
-import android.content.Context
 import android.content.pm.PackageManager
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -68,7 +66,7 @@ fun HomeView(navigator: DestinationsNavigator, snackbarHostState: SnackbarHostSt
                 snackbarScope.launch {
                     snackbarHostState.showSnackbar("Bluetooth permission granted")
                 }
-                launchBluetoothSetup(navigator, context)
+                navigator.navigate(BluetoothListViewDestination)
             } else {
                 // Permission denied, handle accordingly (e.g., show a message)
                 snackbarScope.launch {
@@ -100,7 +98,7 @@ fun HomeView(navigator: DestinationsNavigator, snackbarHostState: SnackbarHostSt
                 NewDeviceButton {
                     if (ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
                         // Permission already granted, proceed with Bluetooth operations
-                        launchBluetoothSetup(navigator, context)
+                        navigator.navigate(BluetoothListViewDestination)
                     } else {
                         if (ActivityCompat.shouldShowRequestPermissionRationale(context as Activity, Manifest.permission.BLUETOOTH_CONNECT)) {
                             // Already denied, show dialog
@@ -149,8 +147,4 @@ fun HomeView(navigator: DestinationsNavigator, snackbarHostState: SnackbarHostSt
             }
         }
     }
-}
-
-fun launchBluetoothSetup(navigator: DestinationsNavigator, context: Context) {
-    navigator.navigate(BluetoothListViewDestination)
 }

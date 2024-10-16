@@ -24,7 +24,7 @@ interface BluetoothRepository {
 }
 
 class BluetoothRepositoryImpl(
-    private val bluetoothManager: BluetoothManager,
+    bluetoothManager: BluetoothManager,
     private val context: Context
 ) : BluetoothRepository {
     private var bluetoothAdapter: BluetoothAdapter? = bluetoothManager.adapter
