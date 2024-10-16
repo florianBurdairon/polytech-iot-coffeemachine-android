@@ -1,10 +1,6 @@
 package fr.polytech.coffeemachineapp.ui
 
-import android.Manifest
-import android.app.Activity
-import android.content.pm.PackageManager
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
+import android.bluetooth.BluetoothManager
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -29,16 +25,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
-import fr.polytech.coffeemachineapp.ui.components.BluetoothDialog
 import fr.polytech.coffeemachineapp.ui.components.DeviceList
 import fr.polytech.coffeemachineapp.ui.components.NewDeviceButton
+import fr.polytech.coffeemachineapp.ui.components.RequestBluetoothPermissions
+import fr.polytech.coffeemachineapp.ui.destinations.BluetoothListViewDestination
 import fr.polytech.coffeemachineapp.ui.destinations.DeviceDetailViewDestination
 import fr.polytech.coffeemachineapp.ui.destinations.LoginViewDestination
-import fr.polytech.coffeemachineapp.ui.destinations.BluetoothListViewDestination
 import fr.polytech.coffeemachineapp.viewmodel.AuthState
 import fr.polytech.coffeemachineapp.viewmodel.AuthViewModel
 import fr.polytech.coffeemachineapp.viewmodel.DeviceViewModel
@@ -56,25 +50,7 @@ fun HomeView(navigator: DestinationsNavigator, snackbarHostState: SnackbarHostSt
 
     val context = LocalContext.current
 
-    var showSettingsDialog by rememberSaveable { mutableStateOf(false) }
-
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission(),
-        onResult = { isGranted ->
-            if (isGranted) {
-                // Permission granted, proceed with Bluetooth operations
-                snackbarScope.launch {
-                    snackbarHostState.showSnackbar("Bluetooth permission granted")
-                }
-                navigator.navigate(BluetoothListViewDestination)
-            } else {
-                // Permission denied, handle accordingly (e.g., show a message)
-                snackbarScope.launch {
-                    snackbarHostState.showSnackbar("Bluetooth permission denied")
-                }
-            }
-        }
-    )
+    var showPermissionRequest by rememberSaveable { mutableStateOf(false) }
 
     DisposableEffect(Unit) {
         deviceViewModel.getDevices()
@@ -83,12 +59,29 @@ fun HomeView(navigator: DestinationsNavigator, snackbarHostState: SnackbarHostSt
         }
     }
 
-    BluetoothDialog(
-        showSettingsDialog,
-        onDismissSettings = {
-            showSettingsDialog = false
-        }
-    )
+    if (showPermissionRequest) {
+        RequestBluetoothPermissions(
+            onPermissionsGranted = {
+                // Permissions granted, proceed with Bluetooth operations
+                showPermissionRequest = false // Hide the dialog
+                val isBluetoothEnabled = context.getSystemService(BluetoothManager::class.java).adapter?.isEnabled ?: false
+                if (!isBluetoothEnabled) {
+                    snackbarScope.launch {
+                        snackbarHostState.showSnackbar("Bluetooth is disabled. Please enable it to add a device.")
+                    }
+                } else {
+                    navigator.navigate(BluetoothListViewDestination) // Navigate to the Bluetooth list view
+                }
+            },
+            onPermissionsDenied = {
+                // Handle permission denial
+                showPermissionRequest = false // Hide the dialog
+                snackbarScope.launch {
+                    snackbarHostState.showSnackbar("Bluetooth permissions are required to use this app.")
+                }
+            }
+        )
+    }
 
     Scaffold (
         floatingActionButton = {
@@ -96,18 +89,7 @@ fun HomeView(navigator: DestinationsNavigator, snackbarHostState: SnackbarHostSt
             if (authState is AuthState.Authenticated) {
                 // Show the floating action button
                 NewDeviceButton {
-                    if (ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
-                        // Permission already granted, proceed with Bluetooth operations
-                        navigator.navigate(BluetoothListViewDestination)
-                    } else {
-                        if (ActivityCompat.shouldShowRequestPermissionRationale(context as Activity, Manifest.permission.BLUETOOTH_CONNECT)) {
-                            // Already denied, show dialog
-                            showSettingsDialog = true // Show dialog
-                        } else {
-                            // First time requesting permission
-                            launcher.launch(Manifest.permission.BLUETOOTH_CONNECT)
-                        }
-                    }
+                    showPermissionRequest = true
                 }
             }
         }

@@ -1,27 +1,32 @@
 package fr.polytech.coffeemachineapp.viewmodel
 
-import android.bluetooth.BluetoothDevice
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import fr.polytech.coffeemachineapp.repository.BluetoothRepository
+import fr.polytech.coffeemachineapp.repository.BluetoothController
+import fr.polytech.coffeemachineapp.ui.state.BluetoothUiState
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 
-class BluetoothViewModel(private val bluetoothRepository: BluetoothRepository) : ViewModel() {
-
-    private val _bluetoothDevices = MutableStateFlow<List<BluetoothDevice>>(emptyList())
-    val bluetoothDevices = _bluetoothDevices.asStateFlow()
+class BluetoothViewModel(private val bluetoothController: BluetoothController) : ViewModel() {
+    private val _state = MutableStateFlow(BluetoothUiState())
+    val state = combine(
+        bluetoothController.scannedDevices,
+        bluetoothController.pairedDevices,
+        _state
+    ) { scannedDevices, pairedDevices, state ->
+        state.copy(
+            scannedDevices = scannedDevices,
+            pairedDevices = pairedDevices
+        )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), _state.value)
 
     fun startScan() {
-        Log.d("BluetoothViewModel", "startScan called")
-        viewModelScope.launch {
-            bluetoothRepository.getAvailableDevices().let { deviceList ->
-                Log.d("BluetoothViewModel", "Available devices: ${deviceList.size}")
-                _bluetoothDevices.update { deviceList }
-            }
-        }
+        bluetoothController.startDiscovery()
+    }
+
+    fun stopScan() {
+        bluetoothController.stopDiscovery()
     }
 }

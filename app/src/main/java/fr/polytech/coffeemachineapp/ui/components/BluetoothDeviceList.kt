@@ -1,5 +1,6 @@
 package fr.polytech.coffeemachineapp.ui.components
 
+import android.annotation.SuppressLint
 import android.bluetooth.BluetoothDevice
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,27 +19,43 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun BluetoothDeviceList(devices: List<BluetoothDevice>, header: (@Composable () -> Unit) = {}, onDeviceSelected: (BluetoothDevice) -> Unit) {
+fun BluetoothDeviceList(pairedDevices: List<BluetoothDevice>, scannedDevices: List<BluetoothDevice>, onDeviceSelected: (BluetoothDevice) -> Unit) {
     LazyColumn(
         modifier = Modifier.fillMaxWidth()
     ) {
-        // Show the header if it is not null
         item {
-            header()
+            Text(
+                text = "Paired Devices",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(16.dp)
+            )
         }
-        // Show the list of devices
-        items(devices.size) { deviceIndex ->
-            BluetoothDeviceListItem(device = devices[deviceIndex], onDeviceSelected = onDeviceSelected)
+        // Show the list of paired devices
+        items(pairedDevices) {
+            BluetoothDeviceListItem(device = it, onDeviceSelected = onDeviceSelected)
+        }
+
+        item {
+            Text(
+                text = "Scanned Devices",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(16.dp)
+            )
+        }
+        // Show the list of scanned devices
+        items(scannedDevices) {
+            BluetoothDeviceListItem(device = it, onDeviceSelected = onDeviceSelected)
         }
     }
 }
 
+@SuppressLint("MissingPermission")
 @Composable
 fun BluetoothDeviceListItem(device: BluetoothDevice, onDeviceSelected: (BluetoothDevice) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
             .background(
                 MaterialTheme.colorScheme.primaryContainer,
                 MaterialTheme.shapes.medium
@@ -50,7 +68,7 @@ fun BluetoothDeviceListItem(device: BluetoothDevice, onDeviceSelected: (Bluetoot
     ) {
         Column {
             Text(
-                text = device.name ?: "Unknown",
+                text = device.name ?: "(No name)",
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                 modifier = Modifier.padding(8.dp)
