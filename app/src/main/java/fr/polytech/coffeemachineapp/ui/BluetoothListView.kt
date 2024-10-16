@@ -1,7 +1,6 @@
 package fr.polytech.coffeemachineapp.ui
 
 import android.content.pm.PackageManager
-import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -112,8 +111,8 @@ fun BluetoothListView(navigator: DestinationsNavigator) {
                 }
             }
         }
-        BluetoothDeviceList(state.pairedDevices, state.scannedDevices) {
-            Toast.makeText(context, "Device selected: ${it.name}", Toast.LENGTH_SHORT).show()
+        BluetoothDeviceList(state.pairedDevices, state.scannedDevices) { device ->
+            bluetoothViewModel.connectDevice(device)
         }
     }
 }
