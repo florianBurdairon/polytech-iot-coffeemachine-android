@@ -19,6 +19,8 @@ interface BluetoothRepository {
     fun connect(device: BluetoothDevice)
     fun disconnect()
     fun send(data: ByteArray)
+    fun startListeningForData() : LiveData<String>
+    fun getAvailableDevices(): List<BluetoothDevice>
 }
 
 class BluetoothRepositoryImpl(
@@ -41,7 +43,7 @@ class BluetoothRepositoryImpl(
 
     private val MY_UUID = "00001101-0000-1000-8000-00805F9B34FB"
 
-    val bluetoothListenerThread = Thread {
+    private val bluetoothListenerThread = Thread {
         while (isListeningForData) {
             try {
                 val bytes = ByteArray(1024)
@@ -120,8 +122,13 @@ class BluetoothRepositoryImpl(
         }
     }
 
-    private fun startListeningForData() {
+    override fun startListeningForData() : LiveData<String> {
         isListeningForData = true
         bluetoothListenerThread.start()
+        return receivedData
+    }
+
+    override fun getAvailableDevices(): List<BluetoothDevice> {
+        return bluetoothAdapter?.bondedDevices?.toList() ?: emptyList()
     }
 }

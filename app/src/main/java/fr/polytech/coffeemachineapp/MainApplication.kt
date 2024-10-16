@@ -2,6 +2,7 @@ package fr.polytech.coffeemachineapp
 
 import android.app.Application
 import fr.polytech.coffeemachineapp.di.authModule
+import fr.polytech.coffeemachineapp.di.bluetoothModule
 import fr.polytech.coffeemachineapp.di.firebaseModule
 import fr.polytech.coffeemachineapp.di.viewModelModule
 import org.koin.android.ext.koin.androidContext
@@ -18,6 +19,7 @@ class MainApplication : Application() {
             modules(
                 authModule,
                 firebaseModule,
+                bluetoothModule,
                 viewModelModule
             )
         }
