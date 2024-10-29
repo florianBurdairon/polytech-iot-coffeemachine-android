@@ -1,8 +1,11 @@
 package fr.polytech.coffeemachineapp.viewmodel
 
+import android.content.Context
 import androidx.compose.material3.SnackbarHostState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -85,9 +88,15 @@ class AuthViewModel(private val auth: FirebaseAuth) : ViewModel() {
         }
     }
 
-    fun signOut() {
-        auth.signOut()
-        _authState.update { AuthState.Unauthenticated }
+    fun signOut(context: Context, onSignOut: () -> Unit) {
+        val googleSignInClient = GoogleSignIn.getClient(context, GoogleSignInOptions.DEFAULT_SIGN_IN)
+        googleSignInClient.signOut().addOnCompleteListener {
+            googleSignInClient.revokeAccess().addOnCompleteListener {
+                auth.signOut()
+                _authState.update { AuthState.Unauthenticated }
+                onSignOut()
+            }
+        }
     }
 
     fun updateDisplayName(displayName: String) {

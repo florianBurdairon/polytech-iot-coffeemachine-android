@@ -1,7 +1,6 @@
 package fr.polytech.coffeemachineapp.ui
 
 import android.bluetooth.BluetoothManager
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -64,19 +63,15 @@ fun HomeView(navigator: DestinationsNavigator, snackbarHostState: SnackbarHostSt
     var ownedDevices by rememberSaveable { mutableStateOf<List<Device>>(emptyList()) }
 
     LaunchedEffect(devices, selectedOwner) {
-        Log.d("HomeView", "LaunchedEffect triggered")
         snapshotFlow {
-            Log.d("HomeView", "SnapshotFlow triggered")
             val allDevices = deviceViewModel.devices.value
             val owner = ownershipViewModel.selectedOwnerState.value
             val ownedDevicesList = mutableListOf<Device>()
             if (owner != null) {
-                Log.d("HomeView", "Owner is not null")
                 for (device in allDevices) {
                     for (ownership in owner.ownership) {
                         if (device.mac == ownership.mac) {
                             ownedDevicesList += device
-                            Log.d("HomeView", "Device added to ownedDevicesList: ${device.name}")
                         }
                     }
                 }
@@ -91,7 +86,6 @@ fun HomeView(navigator: DestinationsNavigator, snackbarHostState: SnackbarHostSt
         deviceViewModel.getDevices()
         Firebase.auth.currentUser?.uid?.let {
             ownershipViewModel.selectOwner(it)
-            Log.d("HomeView", "Owner selected: $it")
         }
         onDispose {
             deviceViewModel.removeDevices()

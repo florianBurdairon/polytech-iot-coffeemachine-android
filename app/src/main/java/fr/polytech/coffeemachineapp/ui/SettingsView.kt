@@ -44,10 +44,11 @@ fun SettingsView(navigator: DestinationsNavigator) {
             is AuthState.Authenticated -> {
                 ElevatedButton(
                     onClick = {
-                        authViewModel.signOut()
-                        navigator.navigate(HomeViewDestination) {
-                            Toast.makeText(context, "You sign out", Toast.LENGTH_SHORT).show()
-                            popUpTo(NavGraphs.root.startRoute.route) { inclusive = true }
+                        authViewModel.signOut(context) {
+                            navigator.navigate(HomeViewDestination) {
+                                Toast.makeText(context, "You sign out", Toast.LENGTH_SHORT).show()
+                                popUpTo(NavGraphs.root.startRoute.route) { inclusive = true }
+                            }
                         }
                     },
                     shape = RoundedCornerShape(15.dp),
