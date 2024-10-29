@@ -27,7 +27,6 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -125,10 +124,7 @@ fun LoginView(navigator: DestinationsNavigator, snackbarHostState: SnackbarHostS
             }
 
             is AuthState.Error -> {
-                LaunchedEffect(authState) {
-                    snackbarHostState.showSnackbar((authState as AuthState.Error).message)
-                }
-                authViewModel.errorHandled()
+                authViewModel.handleError(snackBarScope, snackbarHostState)
             }
             is AuthState.Loading -> {
                 CircularProgressIndicator(
@@ -201,7 +197,9 @@ fun EmailPasswordLoginComponent(
             label = { Text("Email") },
             colors = textFieldColors,
             shape = RoundedCornerShape(15.dp),
-            modifier = Modifier.fillMaxWidth().padding(start = 32.dp, end = 32.dp, top = 16.dp, bottom = 8.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 32.dp, end = 32.dp, top = 16.dp, bottom = 8.dp)
         )
         OutlinedTextField(
             value = password,
@@ -209,7 +207,9 @@ fun EmailPasswordLoginComponent(
             label = { Text("Password") },
             colors = textFieldColors,
             shape = RoundedCornerShape(15.dp),
-            modifier = Modifier.fillMaxWidth().padding(start = 32.dp, end = 32.dp, top = 8.dp, bottom = 16.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 32.dp, end = 32.dp, top = 8.dp, bottom = 16.dp)
         )
         ElevatedButton(
             onClick = {
@@ -256,19 +256,21 @@ fun EmailPasswordLoginComponent(
             color = colorScheme.primary,
             style = MaterialTheme.typography.bodyMedium,
             textDecoration = TextDecoration.Underline,
-            modifier = Modifier.padding(16.dp).clickable {
-                if (email.isNotEmpty()) {
-                    authViewModel.resetPassword(email) {
+            modifier = Modifier
+                .padding(16.dp)
+                .clickable {
+                    if (email.isNotEmpty()) {
+                        authViewModel.resetPassword(email) {
+                            snackBarScope.launch {
+                                snackbarHostState.showSnackbar("Password reset email sent")
+                            }
+                        }
+                    } else {
                         snackBarScope.launch {
-                            snackbarHostState.showSnackbar("Password reset email sent")
+                            snackbarHostState.showSnackbar("Please enter email")
                         }
                     }
-                } else {
-                    snackBarScope.launch {
-                        snackbarHostState.showSnackbar("Please enter email")
-                    }
                 }
-            }
         )
     }
 }

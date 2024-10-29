@@ -1,5 +1,6 @@
 package fr.polytech.coffeemachineapp.viewmodel
 
+import androidx.compose.material3.SnackbarHostState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.AuthCredential
@@ -9,6 +10,7 @@ import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -109,8 +111,14 @@ class AuthViewModel(private val auth: FirebaseAuth) : ViewModel() {
         }
     }
 
-    fun errorHandled() {
-        _authState.update { AuthState.Unauthenticated }
+    fun handleError(scope: CoroutineScope, snackbarHostState: SnackbarHostState) {
+        viewModelScope.launch {
+            val errorMessage = (_authState.value as AuthState.Error).message
+            scope.launch {
+                snackbarHostState.showSnackbar(errorMessage)
+            }
+            _authState.update { AuthState.Unauthenticated }
+        }
     }
 
     init {

@@ -16,30 +16,8 @@ import kotlinx.coroutines.launch
 
 class SensorViewModel(private val firebaseRepository: FirebaseRepository) : ViewModel() {
     private val sensorPath = "sensors"
-    private var _sensors = MutableStateFlow(listOf<Sensor>())
     private var _selectedSensor = MutableStateFlow<Sensor?>(null)
-    val sensorsState: StateFlow<List<Sensor>> = _sensors
     val selectedSensorState: StateFlow<Sensor?> = _selectedSensor
-
-    private val sensorListListener = object : ValueEventListener {
-        override fun onDataChange(snapshot: DataSnapshot) {
-            val sensorsList = mutableListOf<Sensor>()
-            for (sensorSnapshot in snapshot.children) {
-                val mac = sensorSnapshot.key
-                val data = sensorSnapshot.getValue(SensorData::class.java)
-                if (mac != null && data != null) {
-                    sensorsList.add(Sensor(mac, data))
-                }
-            }
-            _sensors.update { sensorsList }
-            Log.d("Firebase", "Sensors: ${_sensors.value.size}")
-        }
-
-        override fun onCancelled(error: DatabaseError) {
-            // Handle error
-            Log.e("Firebase", "Error: ${error.message}")
-        }
-    }
 
     private val sensorListener = object : ValueEventListener {
         override fun onDataChange(snapshot: DataSnapshot) {
@@ -55,18 +33,6 @@ class SensorViewModel(private val firebaseRepository: FirebaseRepository) : View
         override fun onCancelled(error: DatabaseError) {
             // Handle error
             Log.e("Firebase", "Error: ${error.message}")
-        }
-    }
-
-    fun getSensors() {
-        viewModelScope.launch {
-            firebaseRepository.addListener(sensorPath, sensorListListener)
-        }
-    }
-
-    fun removeSensors() {
-        viewModelScope.launch {
-            firebaseRepository.removeListener(sensorPath, sensorListListener)
         }
     }
 
