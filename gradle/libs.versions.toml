@@ -1,5 +1,6 @@
 [versions]
 agp = "8.7.1"
+composeQrCode = "1.0.1"
 koinAndroidxCompose = "3.4.6"
 koinCore = "3.4.3"
 kotlin = "1.9.0"
@@ -39,6 +40,7 @@ colorpicker-compose = { module = "com.github.skydoves:colorpicker-compose", vers
 compose-destinations-core = { module = "io.github.raamcosta.compose-destinations:core", version.ref = "composeDestination" }
 compose-destinations-ksp = { module = "io.github.raamcosta.compose-destinations:ksp", version.ref = "composeDestination" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+compose-qr-code = { module = "com.lightspark:compose-qr-code", version.ref = "composeQrCode" }
 koin-android = { module = "io.insert-koin:koin-android", version.ref = "koinCore" }
 koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koinAndroidxCompose" }
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koinCore" }

@@ -52,6 +52,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.compose.qr.code)
     implementation(libs.koin.core)
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
