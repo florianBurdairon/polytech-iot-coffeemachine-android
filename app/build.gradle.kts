@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.google.gms.google.services)
     alias(libs.plugins.google.devtools.ksp)
+    id("kotlin-parcelize")
 }
 
 android {
@@ -52,6 +53,8 @@ android {
 }
 
 dependencies {
+//    implementation(libs.zxing.android.embedded)
+//    implementation(libs.zxing.core)
     implementation(libs.compose.qr.code)
     implementation(libs.koin.core)
     implementation(libs.koin.android)

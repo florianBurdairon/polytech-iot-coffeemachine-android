@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
@@ -54,28 +53,28 @@ fun BluetoothListView(navigator: DestinationsNavigator) {
         navigator.popBackStack()
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-    ) {
+    Column {
         Row(
-            modifier = Modifier
-                .padding(start = 16.dp, top = 16.dp, end = 16.dp)
-                .clickable { navigator.navigate(HomeViewDestination) },
+            modifier = Modifier.padding(start = 16.dp, end = 16.dp),
             horizontalArrangement = Arrangement.Start,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                contentDescription = "Back",
-                tint = MaterialTheme.colorScheme.onBackground
-            )
-            Text(
-                text = "Back",
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onBackground,
-            )
+            Row(
+                modifier = Modifier.clickable { navigator.navigate(HomeViewDestination) },
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                    contentDescription = "Back",
+                    tint = MaterialTheme.colorScheme.onBackground
+                )
+                Text(
+                    text = "Back",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onBackground,
+                )
+            }
             Spacer(modifier = Modifier.weight(1f))
             if(isScanning) {
                 Button(

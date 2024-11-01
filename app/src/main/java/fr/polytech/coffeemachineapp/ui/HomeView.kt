@@ -1,6 +1,11 @@
 package fr.polytech.coffeemachineapp.ui
 
-import android.bluetooth.BluetoothManager
+import android.Manifest
+import android.app.Activity
+import android.content.pm.PackageManager
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,6 +32,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
+import androidx.core.content.ContextCompat
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import com.ramcosta.composedestinations.annotation.Destination
@@ -34,7 +41,7 @@ import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import fr.polytech.coffeemachineapp.model.Device
 import fr.polytech.coffeemachineapp.ui.components.DeviceList
 import fr.polytech.coffeemachineapp.ui.components.NewDeviceButton
-import fr.polytech.coffeemachineapp.ui.components.RequestBluetoothPermissions
+import fr.polytech.coffeemachineapp.ui.components.PermissionDialog
 import fr.polytech.coffeemachineapp.ui.destinations.BluetoothListViewDestination
 import fr.polytech.coffeemachineapp.ui.destinations.DeviceDetailViewDestination
 import fr.polytech.coffeemachineapp.ui.destinations.LoginViewDestination
@@ -42,6 +49,7 @@ import fr.polytech.coffeemachineapp.viewmodel.AuthState
 import fr.polytech.coffeemachineapp.viewmodel.AuthViewModel
 import fr.polytech.coffeemachineapp.viewmodel.DeviceViewModel
 import fr.polytech.coffeemachineapp.viewmodel.OwnershipViewModel
+import fr.polytech.coffeemachineapp.viewmodel.PermissionsViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.getViewModel
@@ -49,18 +57,83 @@ import org.koin.androidx.compose.getViewModel
 @Destination(start = true)
 @Composable
 fun HomeView(navigator: DestinationsNavigator, snackbarHostState: SnackbarHostState, snackbarScope: CoroutineScope) {
+    // Get view models
     val authViewModel: AuthViewModel = getViewModel()
-    val authState by authViewModel.authState.collectAsState()
     val deviceViewModel: DeviceViewModel = getViewModel()
-    val devices by deviceViewModel.devices.collectAsState()
     val ownershipViewModel: OwnershipViewModel = getViewModel()
+    val permissionsViewModel: PermissionsViewModel = getViewModel()
+
+    // Collect states from view models
+    val authState by authViewModel.authState.collectAsState()
+    val devices by deviceViewModel.devices.collectAsState()
     val selectedOwner by ownershipViewModel.selectedOwnerState.collectAsState()
+    val permissionState by permissionsViewModel.hasPermissions.collectAsState()
+
+    // State variables
+    var showBluetoothRationale by rememberSaveable { mutableStateOf(false) }
+    var showCameraRationale by rememberSaveable { mutableStateOf(false) }
+    var ownedDevices by rememberSaveable { mutableStateOf<List<Device>>(emptyList()) }
 
     val context = LocalContext.current
 
-    var showPermissionRequest by rememberSaveable { mutableStateOf(false) }
+    // Permission launchers
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        permissionsViewModel.updatePermissionStatus(permissionState.copy(hasCameraPermission = isGranted))
+    }
+    val bluetoothPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { isGranted ->
+        permissionsViewModel.updatePermissionStatus(permissionState.copy(hasBluetoothPermission = isGranted.values.all { it }))
+    }
 
-    var ownedDevices by rememberSaveable { mutableStateOf<List<Device>>(emptyList()) }
+    // Function to check and request camera permission
+    fun checkAndRequestCameraPermission(onGranted: () -> Unit = {}, onDenied: () -> Unit = {}) {
+        // Permission to check and request for camera
+        val cameraPermission = Manifest.permission.CAMERA
+        when {
+            // Check if camera permission is granted
+            ContextCompat.checkSelfPermission(context, cameraPermission) == PackageManager.PERMISSION_GRANTED -> {
+                permissionsViewModel.updatePermissionStatus(permissionState.copy(hasCameraPermission = true))
+                onGranted()
+            }
+            // Check if the user has previously denied the permission
+            shouldShowRequestPermissionRationale(context as Activity, cameraPermission) -> {
+                showCameraRationale = true
+            }
+            // Request the camera permission
+            else -> {
+                cameraPermissionLauncher.launch(cameraPermission)
+                onDenied()
+            }
+        }
+    }
+
+    // Function to check and request Bluetooth permission
+    fun checkAndRequestBluetoothPermission(onGranted: () -> Unit = {}, onDenied: () -> Unit = {}) {
+        // List of permissions to check and request for Bluetooth
+        val bluetoothPermissions = listOf(
+            Manifest.permission.BLUETOOTH_CONNECT,
+            Manifest.permission.BLUETOOTH_SCAN
+        )
+        when {
+            // Check if all Bluetooth permissions are granted
+            bluetoothPermissions.all { ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED } -> {
+                permissionsViewModel.updatePermissionStatus(permissionState.copy(hasBluetoothPermission = true))
+                onGranted()
+            }
+            // Check if the user has previously denied the permissions
+            bluetoothPermissions.any { shouldShowRequestPermissionRationale(context as Activity, it) } -> {
+                showBluetoothRationale = true
+            }
+            // Request the Bluetooth permissions
+            else -> {
+                bluetoothPermissionLauncher.launch(bluetoothPermissions.toTypedArray())
+                onDenied()
+            }
+        }
+    }
 
     LaunchedEffect(devices, selectedOwner) {
         snapshotFlow {
@@ -93,25 +166,35 @@ fun HomeView(navigator: DestinationsNavigator, snackbarHostState: SnackbarHostSt
         }
     }
 
-    if (showPermissionRequest) {
-        RequestBluetoothPermissions(
-            onPermissionsGranted = {
-                // Permissions granted, proceed with Bluetooth operations
-                showPermissionRequest = false // Hide the dialog
-                val isBluetoothEnabled = context.getSystemService(BluetoothManager::class.java).adapter?.isEnabled ?: false
-                if (!isBluetoothEnabled) {
-                    snackbarScope.launch {
-                        snackbarHostState.showSnackbar("Bluetooth is disabled. Please enable it to add a device.")
-                    }
-                } else {
-                    navigator.navigate(BluetoothListViewDestination) // Navigate to the Bluetooth list view
-                }
+    if (showBluetoothRationale) {
+        // Show the bluetooth permission dialog
+        PermissionDialog(
+            context = context,
+            dialogText = "This app needs bluetooth permissions to discover and connect to devices.",
+            onConfirm = {
+                showBluetoothRationale = false
             },
-            onPermissionsDenied = {
-                // Handle permission denial
-                showPermissionRequest = false // Hide the dialog
+            onDismiss = {
+                showBluetoothRationale = false
                 snackbarScope.launch {
-                    snackbarHostState.showSnackbar("Bluetooth permissions are required to use this app.")
+                    snackbarHostState.showSnackbar("Bluetooth permissions are required to set up new devices.")
+                }
+            }
+        )
+    }
+
+    if (showCameraRationale) {
+        // Show the camera permission dialog
+        PermissionDialog(
+            context = context,
+            dialogText = "This app needs camera permissions to scan QR codes.",
+            onConfirm = {
+                showCameraRationale = false
+            },
+            onDismiss = {
+                showCameraRationale = false
+                snackbarScope.launch {
+                    snackbarHostState.showSnackbar("Camera permissions are required to add devices to your account.")
                 }
             }
         )
@@ -122,9 +205,34 @@ fun HomeView(navigator: DestinationsNavigator, snackbarHostState: SnackbarHostSt
             // Add a floating action button if needed
             if (authState is AuthState.Authenticated) {
                 // Show the floating action button
-                NewDeviceButton {
-                    showPermissionRequest = true
-                }
+                NewDeviceButton(
+                    onQRClick = {
+                        // Handle QR code scanning
+                        checkAndRequestCameraPermission(
+                            onGranted = {
+                                Toast.makeText(context, "Scanning QR code...", Toast.LENGTH_SHORT).show()
+                            },
+                            onDenied = {
+                                snackbarScope.launch {
+                                    snackbarHostState.showSnackbar("Camera permissions are required to add devices to your account.")
+                                }
+                            }
+                        )
+                    },
+                    onBluetoothClick = {
+                        // Handle Bluetooth device selection
+                        checkAndRequestBluetoothPermission(
+                            onGranted = {
+                                navigator.navigate(BluetoothListViewDestination)
+                            },
+                            onDenied = {
+                                snackbarScope.launch {
+                                    snackbarHostState.showSnackbar("Bluetooth permissions are required to set up new devices.")
+                                }
+                            }
+                        )
+                    }
+                )
             }
         }
     ) { innerPadding ->
@@ -164,3 +272,4 @@ fun HomeView(navigator: DestinationsNavigator, snackbarHostState: SnackbarHostSt
         }
     }
 }
+

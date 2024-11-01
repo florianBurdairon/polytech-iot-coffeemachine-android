@@ -101,22 +101,26 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
     Column {
         // Back button
         Row(
-            modifier = Modifier
-                .padding(start = 16.dp, top = 16.dp, end = 16.dp)
-                .clickable { navigator.navigate(HomeViewDestination) },
+            modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp),
             horizontalArrangement = Arrangement.Start,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                contentDescription = "Back",
-                tint = MaterialTheme.colorScheme.onBackground
-            )
-            Text(
-                text = "Back",
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onBackground,
-            )
+            Row(
+                modifier = Modifier.clickable { navigator.navigate(HomeViewDestination) },
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                    contentDescription = "Back",
+                    tint = MaterialTheme.colorScheme.onBackground
+                )
+                Text(
+                    text = "Back",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onBackground,
+                )
+            }
             Spacer(modifier = Modifier.weight(1f))
             Icon(
                 imageVector = Icons.Default.Settings,
