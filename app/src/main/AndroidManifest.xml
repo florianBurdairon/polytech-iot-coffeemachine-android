@@ -21,6 +21,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.CoffeeMachineApp"
         tools:targetApi="34">
+        <meta-data
+            android:name="com.google.mlkit.vision.DEPENDENCIES"
+            android:value="barcode_ui" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

@@ -34,12 +34,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.google.gson.Gson
 import com.lightspark.composeqr.DotShape
 import com.lightspark.composeqr.QrCodeColors
 import com.lightspark.composeqr.QrCodeView
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import fr.polytech.coffeemachineapp.R
+import fr.polytech.coffeemachineapp.model.QRData
 import fr.polytech.coffeemachineapp.ui.components.DeviceStatusIcon
 import fr.polytech.coffeemachineapp.ui.destinations.HomeViewDestination
 import fr.polytech.coffeemachineapp.viewmodel.AuthState
@@ -80,8 +82,10 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
             onDismissRequest = { showDialog = false },
             title = { Text("Setting for ${selectedDevice?.name ?: "Unknown device"}") },
             text = {
+                val qrData = QRData((authState as AuthState.Authenticated).user?.uid.toString(), selectedDevice?.mac.toString())
+                val qrDataJson = Gson().toJson(qrData)
                 QrCodeView(
-                    data = "${selectedDevice?.mac ?: " "}\n${(authState as AuthState.Authenticated).user?.uid ?: " "}",
+                    data = qrDataJson,
                     modifier = Modifier.size(250.dp).padding(16.dp),
                     colors = QrCodeColors(
                         background = MaterialTheme.colorScheme.primaryContainer,

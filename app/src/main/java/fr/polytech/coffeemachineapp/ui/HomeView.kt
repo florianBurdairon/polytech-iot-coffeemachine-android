@@ -3,7 +3,7 @@ package fr.polytech.coffeemachineapp.ui
 import android.Manifest
 import android.app.Activity
 import android.content.pm.PackageManager
-import android.widget.Toast
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -36,15 +36,18 @@ import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
 import androidx.core.content.ContextCompat
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import com.google.gson.Gson
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import fr.polytech.coffeemachineapp.model.Device
+import fr.polytech.coffeemachineapp.model.QRData
 import fr.polytech.coffeemachineapp.ui.components.DeviceList
 import fr.polytech.coffeemachineapp.ui.components.NewDeviceButton
 import fr.polytech.coffeemachineapp.ui.components.PermissionDialog
 import fr.polytech.coffeemachineapp.ui.destinations.BluetoothListViewDestination
 import fr.polytech.coffeemachineapp.ui.destinations.DeviceDetailViewDestination
 import fr.polytech.coffeemachineapp.ui.destinations.LoginViewDestination
+import fr.polytech.coffeemachineapp.utils.BarcodeScanner
 import fr.polytech.coffeemachineapp.viewmodel.AuthState
 import fr.polytech.coffeemachineapp.viewmodel.AuthViewModel
 import fr.polytech.coffeemachineapp.viewmodel.DeviceViewModel
@@ -75,6 +78,9 @@ fun HomeView(navigator: DestinationsNavigator, snackbarHostState: SnackbarHostSt
     var ownedDevices by rememberSaveable { mutableStateOf<List<Device>>(emptyList()) }
 
     val context = LocalContext.current
+
+    // Barcode scanner instance
+    val barcodeScanner = BarcodeScanner(context)
 
     // Permission launchers
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
@@ -210,7 +216,19 @@ fun HomeView(navigator: DestinationsNavigator, snackbarHostState: SnackbarHostSt
                         // Handle QR code scanning
                         checkAndRequestCameraPermission(
                             onGranted = {
-                                Toast.makeText(context, "Scanning QR code...", Toast.LENGTH_SHORT).show()
+                                snackbarScope.launch {
+                                    val qrDataJson = barcodeScanner.startScan()
+                                    val qrData = qrDataJson?.let {
+                                        try {
+                                            Gson().fromJson(it, QRData::class.java)
+                                        }
+                                        catch (e: Exception) {
+                                            Log.e("HomeView", "Error parsing QR data: ${e.message}")
+                                            null
+                                        }
+                                    }
+                                    snackbarHostState.showSnackbar("QR Data : ${qrData ?: "No data found"}")
+                                }
                             },
                             onDenied = {
                                 snackbarScope.launch {

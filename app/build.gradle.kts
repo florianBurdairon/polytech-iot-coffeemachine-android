@@ -53,8 +53,9 @@ android {
 }
 
 dependencies {
-//    implementation(libs.zxing.android.embedded)
-//    implementation(libs.zxing.core)
+    implementation(libs.gson)
+    implementation(libs.play.services.code.scanner)
+    implementation(libs.kotlinx.coroutines.play.services)
     implementation(libs.compose.qr.code)
     implementation(libs.koin.core)
     implementation(libs.koin.android)
