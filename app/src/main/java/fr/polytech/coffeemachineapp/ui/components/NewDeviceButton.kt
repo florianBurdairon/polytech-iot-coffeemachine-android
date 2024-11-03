@@ -2,8 +2,6 @@ package fr.polytech.coffeemachineapp.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -15,7 +13,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import fr.polytech.coffeemachineapp.R
 
 @Composable
 fun NewDeviceButton(onBluetoothClick: () -> Unit, onQRClick: () -> Unit) {
@@ -32,7 +32,7 @@ fun NewDeviceButton(onBluetoothClick: () -> Unit, onQRClick: () -> Unit) {
             onClick = {
                 isExpanded = !isExpanded
             },
-            content = { Icon(Icons.Filled.Add, contentDescription = "Add device") }
+            content = { Icon(painterResource(R.drawable.add_24dp), contentDescription = "Add device") }
         )
     }
 
@@ -45,7 +45,7 @@ fun NewBluetoothDeviceButton(onClick: () -> Unit)
         onClick = {
             onClick()
         },
-        icon = { Icon(Icons.Filled.Add, contentDescription = "Bluetooth") },
+        icon = { Icon(painterResource(R.drawable.bluetooth_24dp), contentDescription = "Bluetooth") },
         text = { Text(text = "Bluetooth") },
         containerColor = MaterialTheme.colorScheme.secondaryContainer,
         contentColor = MaterialTheme.colorScheme.onSecondaryContainer
@@ -59,7 +59,7 @@ fun NewQRDeviceButton(onClick: () -> Unit)
         onClick = {
             onClick()
         },
-        icon = { Icon(Icons.Filled.Add, contentDescription = "QR Code") },
+        icon = { Icon(painterResource(R.drawable.qr_code_24dp), contentDescription = "QR Code") },
         text = { Text(text = "QR Code") },
         containerColor = MaterialTheme.colorScheme.secondaryContainer,
         contentColor = MaterialTheme.colorScheme.onSecondaryContainer

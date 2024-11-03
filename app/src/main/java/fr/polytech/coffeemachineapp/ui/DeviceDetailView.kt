@@ -12,8 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -115,7 +114,7 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                    imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
                     contentDescription = "Back",
                     tint = MaterialTheme.colorScheme.onBackground
                 )
@@ -127,7 +126,7 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
             }
             Spacer(modifier = Modifier.weight(1f))
             Icon(
-                imageVector = Icons.Default.Settings,
+                painter = painterResource(R.drawable.settings_24dp),
                 contentDescription = "Settings",
                 tint = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.clickable {

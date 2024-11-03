@@ -59,7 +59,7 @@ import org.koin.androidx.compose.getViewModel
 
 @Destination(start = true)
 @Composable
-fun HomeView(navigator: DestinationsNavigator, snackbarHostState: SnackbarHostState, snackbarScope: CoroutineScope) {
+fun HomeView(navigator: DestinationsNavigator, snackbarHostState: SnackbarHostState, scope: CoroutineScope) {
     // Get view models
     val authViewModel: AuthViewModel = getViewModel()
     val deviceViewModel: DeviceViewModel = getViewModel()
@@ -77,6 +77,7 @@ fun HomeView(navigator: DestinationsNavigator, snackbarHostState: SnackbarHostSt
     var showCameraRationale by rememberSaveable { mutableStateOf(false) }
     var ownedDevices by rememberSaveable { mutableStateOf<List<Device>>(emptyList()) }
 
+    // Context
     val context = LocalContext.current
 
     // Barcode scanner instance
@@ -182,7 +183,7 @@ fun HomeView(navigator: DestinationsNavigator, snackbarHostState: SnackbarHostSt
             },
             onDismiss = {
                 showBluetoothRationale = false
-                snackbarScope.launch {
+                scope.launch {
                     snackbarHostState.showSnackbar("Bluetooth permissions are required to set up new devices.")
                 }
             }
@@ -199,7 +200,7 @@ fun HomeView(navigator: DestinationsNavigator, snackbarHostState: SnackbarHostSt
             },
             onDismiss = {
                 showCameraRationale = false
-                snackbarScope.launch {
+                scope.launch {
                     snackbarHostState.showSnackbar("Camera permissions are required to add devices to your account.")
                 }
             }
@@ -216,7 +217,7 @@ fun HomeView(navigator: DestinationsNavigator, snackbarHostState: SnackbarHostSt
                         // Handle QR code scanning
                         checkAndRequestCameraPermission(
                             onGranted = {
-                                snackbarScope.launch {
+                                scope.launch {
                                     val qrDataJson = barcodeScanner.startScan()
                                     val qrData = qrDataJson?.let {
                                         try {
@@ -231,7 +232,7 @@ fun HomeView(navigator: DestinationsNavigator, snackbarHostState: SnackbarHostSt
                                 }
                             },
                             onDenied = {
-                                snackbarScope.launch {
+                                scope.launch {
                                     snackbarHostState.showSnackbar("Camera permissions are required to add devices to your account.")
                                 }
                             }
@@ -244,7 +245,7 @@ fun HomeView(navigator: DestinationsNavigator, snackbarHostState: SnackbarHostSt
                                 navigator.navigate(BluetoothListViewDestination)
                             },
                             onDenied = {
-                                snackbarScope.launch {
+                                scope.launch {
                                     snackbarHostState.showSnackbar("Bluetooth permissions are required to set up new devices.")
                                 }
                             }

@@ -52,7 +52,38 @@ fun DeviceItem(device: Device, onDeviceClick: (Device) -> Unit) {
         Icon(painter = painterResource(id = R.drawable.coffee_maker), contentDescription = "device icon", modifier = Modifier.padding(start = 16.dp))
         Text(text = device.name, style = MaterialTheme.typography.titleLarge, color = colorScheme.onPrimaryContainer, modifier = Modifier.padding(start = 16.dp))
         Spacer(modifier = Modifier.weight(1f))
-        DeviceStatusIcon(status = device.status, modifier = Modifier.padding(end = 16.dp))
+        DeviceConnectivityStatusIcon(status = device.status, modifier = Modifier.padding(end = 16.dp))
+    }
+}
+
+@Composable
+fun DeviceConnectivityStatusIcon(status: String, modifier: Modifier = Modifier) {
+    when (status) {
+        "online" -> Icon(
+            painter = painterResource(id = R.drawable.wifi_24dp),
+            contentDescription = "device status : $status",
+            modifier = modifier,
+            tint = colorScheme.onPrimaryContainer
+        )
+        "offline" -> Icon(
+            painter = painterResource(id = R.drawable.wifi_off_24dp),
+            contentDescription = "device status : $status",
+            modifier = modifier,
+            tint = colorScheme.onPrimaryContainer
+        )
+        "busy" -> Icon(
+            painter = painterResource(id = R.drawable.wifi_24dp),
+            contentDescription = "device status : $status",
+            modifier = modifier,
+            tint = colorScheme.onPrimaryContainer
+        )
+        else -> {
+            Log.d("DeviceStatusIcon", "Unknown status: $status")
+            CircularProgressIndicator(
+                color = colorScheme.onPrimaryContainer,
+                modifier = modifier.size(20.dp)
+            )
+        }
     }
 }
 

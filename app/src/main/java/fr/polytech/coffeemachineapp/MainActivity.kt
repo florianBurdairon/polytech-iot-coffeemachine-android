@@ -23,6 +23,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.navigation.compose.rememberNavController
 import com.ramcosta.composedestinations.DestinationsNavHost
 import com.ramcosta.composedestinations.navigation.dependency
@@ -57,7 +58,7 @@ class MainActivity : ComponentActivity() {
                                     icon = {
                                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                             Icon(
-                                                item.icon,
+                                                painter = painterResource(id = item.icon),
                                                 contentDescription = item.label
                                             )
                                             Text(item.label, style = MaterialTheme.typography.labelSmall)
