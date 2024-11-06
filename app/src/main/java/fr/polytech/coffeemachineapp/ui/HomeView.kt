@@ -228,7 +228,10 @@ fun HomeView(navigator: DestinationsNavigator, snackbarHostState: SnackbarHostSt
                                             null
                                         }
                                     }
-                                    snackbarHostState.showSnackbar("QR Data : ${qrData ?: "No data found"}")
+                                    Log.d("QRData", "QR Data : ${qrData ?: "No data found"}")
+                                    if (qrData != null) {
+                                        ownershipViewModel.addGuest(qrData)
+                                    }
                                 }
                             },
                             onDenied = {

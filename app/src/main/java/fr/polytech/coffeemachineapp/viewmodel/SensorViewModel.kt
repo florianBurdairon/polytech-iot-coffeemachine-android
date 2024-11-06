@@ -22,11 +22,16 @@ class SensorViewModel(private val firebaseRepository: FirebaseRepository) : View
     private val sensorListener = object : ValueEventListener {
         override fun onDataChange(snapshot: DataSnapshot) {
             val mac = snapshot.key
-            val data = snapshot.getValue(SensorData::class.java)
-            if (mac != null && data != null) {
-                val sensor = Sensor(mac, data)
-                _selectedSensor.update { sensor }
-                Log.d("Firebase", "Sensor: $sensor")
+            try {
+                val data = snapshot.getValue(SensorData::class.java)
+                if (mac != null && data != null) {
+                    val sensor = Sensor(mac, data)
+                    _selectedSensor.update { sensor }
+                    Log.d("Firebase", "Sensor: $sensor")
+                }
+            }
+            catch (e: Exception) {
+                Log.e("Firebase", "Error: ${e.message}")
             }
         }
 

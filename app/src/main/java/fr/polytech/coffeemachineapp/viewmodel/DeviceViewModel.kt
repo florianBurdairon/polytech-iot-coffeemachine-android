@@ -24,8 +24,13 @@ class DeviceViewModel(private val firebaseRepository: FirebaseRepository) : View
         override fun onDataChange(dataSnapshot: DataSnapshot) {
             val deviceList = mutableListOf<Device>()
             dataSnapshot.children.forEach { deviceSnapshot ->
-                val device = deviceSnapshot.getValue(Device::class.java)
-                device?.let { deviceList.add(it) }
+                try {
+                    val device = deviceSnapshot.getValue(Device::class.java)
+                    device?.let { deviceList.add(it) }
+                }
+                catch (e: Exception) {
+                    Log.e("Firebase", "Error: ${e.message}")
+                }
             }
             _devices.update { deviceList }
             Log.d("Firebase", "Devices: ${_devices.value.size}")

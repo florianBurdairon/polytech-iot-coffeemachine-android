@@ -2,12 +2,13 @@ package fr.polytech.coffeemachineapp.repository
 
 import android.util.Log
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.GenericTypeIndicator
 import com.google.firebase.database.ValueEventListener
 import kotlinx.coroutines.tasks.await
 
 interface FirebaseRepository {
     suspend fun sendData(data: Any, path: String)
-    suspend fun <T> getData(path: String, dataType: Class<T>): T?
+    suspend fun <T> getData(path: String, dataType: GenericTypeIndicator<T>): T?
     fun addListener(path: String, listener: ValueEventListener)
     fun removeListener(path: String, listener: ValueEventListener)
 }
@@ -23,7 +24,7 @@ class FirebaseRepositoryImpl(database: FirebaseDatabase) : FirebaseRepository {
             Log.e("Firebase", "Error sending data: ${e.message}", e)
         }
     }
-    override suspend fun <T> getData(path: String, dataType: Class<T>): T? {
+    override suspend fun <T> getData(path: String, dataType: GenericTypeIndicator<T>): T? {
         return try {
             val snapshot = dataRef.child(path).get().await()
             snapshot.getValue(dataType)

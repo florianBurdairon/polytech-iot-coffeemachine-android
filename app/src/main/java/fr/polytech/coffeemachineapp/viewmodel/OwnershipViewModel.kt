@@ -5,9 +5,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.GenericTypeIndicator
 import com.google.firebase.database.ValueEventListener
 import fr.polytech.coffeemachineapp.model.Owner
 import fr.polytech.coffeemachineapp.model.Ownership
+import fr.polytech.coffeemachineapp.model.QRData
 import fr.polytech.coffeemachineapp.repository.FirebaseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,9 +25,14 @@ class OwnershipViewModel(private val firebaseRepository: FirebaseRepository) : V
         override fun onDataChange(snapshot: DataSnapshot) {
             val userOwnership = mutableListOf<Ownership>()
             for (ownership in snapshot.children) {
-                val data = ownership.getValue(Ownership::class.java)
-                if (data != null) {
-                    userOwnership.add(data)
+                try {
+                    val data = ownership.getValue(Ownership::class.java)
+                    if (data != null) {
+                        userOwnership.add(data)
+                    }
+                }
+                catch (e: Exception) {
+                    Log.e("Firebase", "Error: ${e.message}")
                 }
             }
             _selectedOwner.update { Owner(snapshot.key!!, userOwnership) }
@@ -57,6 +64,37 @@ class OwnershipViewModel(private val firebaseRepository: FirebaseRepository) : V
         viewModelScope.launch {
             firebaseRepository.removeListener("$ownershipPath/${_selectedOwner.value?.uid}", ownerListener)
             _selectedOwner.update { null }
+        }
+    }
+
+    fun addGuest(qrData: QRData) {
+        val owner = qrData.uid
+        val mac = qrData.mac
+        val guest = _selectedOwner.value?.uid
+        if (guest != null && owner.isNotBlank() && mac.isNotBlank()) {
+            viewModelScope.launch {
+                // Add guest to the owner's list
+                val stringListTypeIndicator: GenericTypeIndicator<List<String>> =
+                    object : GenericTypeIndicator<List<String>>() {}
+                val guestList =
+                    firebaseRepository.getData("$ownershipPath/$owner/$mac/guests", stringListTypeIndicator)
+                        ?.toMutableList() ?: mutableListOf()
+                if (!guestList.contains(guest)) {
+                    guestList.add(guest)
+                    firebaseRepository.sendData(guestList, "$ownershipPath/$owner/$mac/guests")
+                }
+
+                // Add device to the guest's list
+                val ownershipListTypeIndicator: GenericTypeIndicator<List<Ownership>> =
+                    object : GenericTypeIndicator<List<Ownership>>() {}
+                val deviceList =
+                    firebaseRepository.getData("$ownershipPath/$guest", ownershipListTypeIndicator)
+                        ?.toMutableList() ?: mutableListOf()
+                val ownership = Ownership(null, mac, "guest")
+                if (!deviceList.contains(ownership)) {
+                    firebaseRepository.sendData(ownership, "$ownershipPath/$guest/$mac")
+                }
+            }
         }
     }
 }
