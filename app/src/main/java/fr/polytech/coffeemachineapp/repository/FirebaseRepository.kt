@@ -9,6 +9,7 @@ import kotlinx.coroutines.tasks.await
 interface FirebaseRepository {
     suspend fun sendData(data: Any, path: String)
     suspend fun <T> getData(path: String, dataType: GenericTypeIndicator<T>): T?
+    suspend fun removeData(path: String)
     fun addListener(path: String, listener: ValueEventListener)
     fun removeListener(path: String, listener: ValueEventListener)
 }
@@ -24,6 +25,7 @@ class FirebaseRepositoryImpl(database: FirebaseDatabase) : FirebaseRepository {
             Log.e("Firebase", "Error sending data: ${e.message}", e)
         }
     }
+
     override suspend fun <T> getData(path: String, dataType: GenericTypeIndicator<T>): T? {
         return try {
             val snapshot = dataRef.child(path).get().await()
@@ -34,6 +36,16 @@ class FirebaseRepositoryImpl(database: FirebaseDatabase) : FirebaseRepository {
             null
         }
     }
+
+    override suspend fun removeData(path: String) {
+        try {
+            dataRef.child(path).removeValue().await()
+        } catch (e: Exception) {
+            // Handle error (e.g., log, throw custom exception)
+            Log.e("Firebase", "Error removing data: ${e.message}", e)
+        }
+    }
+
     override fun addListener(path: String, listener: ValueEventListener) {
         dataRef.child(path).addValueEventListener(listener)
     }

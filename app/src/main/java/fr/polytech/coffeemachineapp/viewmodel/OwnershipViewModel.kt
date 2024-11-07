@@ -20,6 +20,8 @@ class OwnershipViewModel(private val firebaseRepository: FirebaseRepository) : V
     private val ownershipPath = "ownership"
     private var _selectedOwner = MutableStateFlow<Owner?>(null)
     val selectedOwnerState: StateFlow<Owner?> = _selectedOwner
+    private var _guests = MutableStateFlow<List<String>>(emptyList())
+    val guestsState: StateFlow<List<String>> = _guests
 
     private val ownerListener = object : ValueEventListener {
         override fun onDataChange(snapshot: DataSnapshot) {
@@ -95,6 +97,71 @@ class OwnershipViewModel(private val firebaseRepository: FirebaseRepository) : V
                     firebaseRepository.sendData(ownership, "$ownershipPath/$guest/$mac")
                 }
             }
+        }
+    }
+
+    fun removeGuest(owner: String, guest: String, mac: String) {
+        viewModelScope.launch {
+            // Remove guest from the owner's list
+            val stringListTypeIndicator: GenericTypeIndicator<List<String>> =
+                object : GenericTypeIndicator<List<String>>() {}
+            val guestList =
+                firebaseRepository.getData("$ownershipPath/$owner/$mac/guests", stringListTypeIndicator)
+                    ?.toMutableList() ?: mutableListOf()
+            if (guestList.contains(guest)) {
+                guestList.remove(guest)
+                firebaseRepository.sendData(guestList, "$ownershipPath/$owner/$mac/guests")
+            }
+
+            // Remove device from the guest's list
+            val ownershipListTypeIndicator: GenericTypeIndicator<List<Ownership>> =
+                object : GenericTypeIndicator<List<Ownership>>() {}
+            val deviceList =
+                firebaseRepository.getData("$ownershipPath/$guest", ownershipListTypeIndicator)
+                    ?.toMutableList() ?: mutableListOf()
+            val ownership = Ownership(null, mac, "guest")
+            if (deviceList.contains(ownership)) {
+                firebaseRepository.removeData("$ownershipPath/$guest/$mac")
+            }
+        }
+    }
+
+    private val guestsListener = object : ValueEventListener {
+        override fun onDataChange(snapshot: DataSnapshot) {
+            val guests = mutableListOf<String>()
+            for (guest in snapshot.children) {
+                try {
+                    val data = guest.getValue(String::class.java)
+                    if (data != null) {
+                        guests.add(data)
+                    }
+                }
+                catch (e: Exception) {
+                    Log.e("Firebase", "Error: ${e.message}")
+                }
+            }
+            _guests.update { guests }
+            Log.d("Firebase", "Guests: ${_guests.value}")
+        }
+
+        override fun onCancelled(error: DatabaseError) {
+            // Handle error
+            Log.e("Firebase", "Error: ${error.message}")
+        }
+    }
+
+    fun getGuestList(mac: String, owner: String) {
+        viewModelScope.launch {
+            Log.d("Firebase", "Adding listener for guests")
+            firebaseRepository.addListener("$ownershipPath/$owner/$mac/guests", guestsListener)
+        }
+    }
+
+    fun removeGuestListListener(mac: String, owner: String) {
+        viewModelScope.launch {
+            Log.d("Firebase", "Removing listener for guests")
+            firebaseRepository.removeListener("$ownershipPath/$owner/$mac/guests", guestsListener)
+            _guests.update { emptyList() }
         }
     }
 }
