@@ -39,6 +39,7 @@ import fr.polytech.coffeemachineapp.ui.destinations.HomeViewDestination
 import fr.polytech.coffeemachineapp.viewmodel.AuthState
 import fr.polytech.coffeemachineapp.viewmodel.AuthViewModel
 import fr.polytech.coffeemachineapp.viewmodel.DeviceViewModel
+import fr.polytech.coffeemachineapp.viewmodel.OwnershipViewModel
 import fr.polytech.coffeemachineapp.viewmodel.SensorViewModel
 import org.koin.androidx.compose.getViewModel
 
@@ -51,6 +52,8 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
     val selectedDevice by deviceViewModel.selectedDevice.collectAsState()
     val sensorViewModel: SensorViewModel = getViewModel()
     val selectedSensor by sensorViewModel.selectedSensorState.collectAsState()
+    val ownershipViewModel: OwnershipViewModel = getViewModel()
+    val selectedOwner by ownershipViewModel.selectedOwnerState.collectAsState()
 
     val context = LocalContext.current
 
@@ -59,9 +62,11 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
     DisposableEffect(Unit) {
         deviceViewModel.selectDevice(selectedDeviceMac)
         sensorViewModel.selectSensor(selectedDeviceMac)
+        ownershipViewModel.selectOwner((authState as AuthState.Authenticated).user?.uid ?: "")
         onDispose {
             deviceViewModel.unselectDevice()
             sensorViewModel.unselectSensor()
+            ownershipViewModel.unselectOwner()
         }
     }
 
@@ -96,15 +101,22 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
                 )
             }
             Spacer(modifier = Modifier.weight(1f))
-            Icon(
-                painter = painterResource(R.drawable.settings_24dp),
-                contentDescription = "Settings",
-                tint = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.clickable {
-                    // Navigate to the device settings view
-                    selectedDevice?.let { navigator.navigate(DeviceSettingsViewDestination(it)) }
-                }
-            )
+            // Show the settings icon if the user is the owner of the device
+            var isOwner = false
+            selectedOwner?.ownership?.forEach { ownership ->
+                if (ownership.mac == selectedDeviceMac && ownership.type == "owner") isOwner = true
+            }
+            if (isOwner) {
+                Icon(
+                    painter = painterResource(R.drawable.settings_24dp),
+                    contentDescription = "Settings",
+                    tint = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.clickable {
+                        // Navigate to the device settings view
+                        selectedDevice?.let { navigator.navigate(DeviceSettingsViewDestination(it)) }
+                    }
+                )
+            }
         }
         // Show the device details panel
         Column(
