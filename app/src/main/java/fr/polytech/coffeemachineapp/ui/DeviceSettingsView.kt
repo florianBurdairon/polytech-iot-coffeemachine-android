@@ -19,6 +19,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -35,21 +36,25 @@ import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import fr.polytech.coffeemachineapp.model.Device
 import fr.polytech.coffeemachineapp.model.QRData
+import fr.polytech.coffeemachineapp.model.User
 import fr.polytech.coffeemachineapp.ui.components.GuestList
 import fr.polytech.coffeemachineapp.viewmodel.AuthState
 import fr.polytech.coffeemachineapp.viewmodel.AuthViewModel
 import fr.polytech.coffeemachineapp.viewmodel.OwnershipViewModel
+import fr.polytech.coffeemachineapp.viewmodel.UserViewModel
 import org.koin.androidx.compose.getViewModel
 
 @Destination
 @Composable
 fun DeviceSettingsView(navigator: DestinationsNavigator, device: Device) {
     val authViewModel: AuthViewModel = getViewModel()
-    val authState by authViewModel.authState.collectAsState()
     val ownershipViewModel: OwnershipViewModel = getViewModel()
+    val userViewModel: UserViewModel = getViewModel()
+    val authState by authViewModel.authState.collectAsState()
     val guests by ownershipViewModel.guestsState.collectAsState()
     var user by rememberSaveable { mutableStateOf<String?>(null) }
     var showDialog by rememberSaveable { mutableStateOf(false) }
+    var guestUsers by rememberSaveable { mutableStateOf<List<User>>(listOf()) }
 
     DisposableEffect(Unit) {
         if (authState is AuthState.Authenticated) {
@@ -62,6 +67,12 @@ fun DeviceSettingsView(navigator: DestinationsNavigator, device: Device) {
                 user = (authState as AuthState.Authenticated).user?.uid
                 user?.let { ownershipViewModel.removeGuestListListener(device.mac, it) }
             }
+        }
+    }
+
+    LaunchedEffect(guests) {
+        guestUsers = guests.map {
+            userViewModel.getUser(it) ?: User("Unknown", it)
         }
     }
 
@@ -125,7 +136,7 @@ fun DeviceSettingsView(navigator: DestinationsNavigator, device: Device) {
         }
         // Display the list of guests
         GuestList(
-            guests = guests,
+            guests = guestUsers,
             header = {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(16.dp),

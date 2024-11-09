@@ -51,10 +51,12 @@ import com.google.android.gms.common.api.ApiException
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import fr.polytech.coffeemachineapp.R
+import fr.polytech.coffeemachineapp.model.User
 import fr.polytech.coffeemachineapp.ui.destinations.HomeViewDestination
 import fr.polytech.coffeemachineapp.ui.destinations.LoginViewDestination
 import fr.polytech.coffeemachineapp.viewmodel.AuthState
 import fr.polytech.coffeemachineapp.viewmodel.AuthViewModel
+import fr.polytech.coffeemachineapp.viewmodel.UserViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.getViewModel
@@ -63,6 +65,7 @@ import org.koin.androidx.compose.getViewModel
 @Composable
 fun LoginView(navigator: DestinationsNavigator, snackbarHostState: SnackbarHostState, snackBarScope: CoroutineScope) {
     val authViewModel: AuthViewModel = getViewModel()
+    val userViewModel: UserViewModel = getViewModel()
     val authState by authViewModel.authState.collectAsState()
 
     val token = stringResource(id = R.string.web_client_id)
@@ -90,6 +93,13 @@ fun LoginView(navigator: DestinationsNavigator, snackbarHostState: SnackbarHostS
                     "Welcome ${(authState as AuthState.Authenticated).user?.displayName}",
                     Toast.LENGTH_SHORT
                 ).show()
+                (authState as AuthState.Authenticated).user?.uid?.let {
+                    userViewModel.updateUser(
+                        User(
+                            (authState as AuthState.Authenticated).user?.displayName ?: "", it
+                        )
+                    )
+                }
                 navigator.navigate(HomeViewDestination){
                     popUpTo(LoginViewDestination.route) {
                         inclusive = true

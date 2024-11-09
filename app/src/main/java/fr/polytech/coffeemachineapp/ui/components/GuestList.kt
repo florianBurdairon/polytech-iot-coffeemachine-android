@@ -16,9 +16,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import fr.polytech.coffeemachineapp.model.User
 
 @Composable
-fun GuestList(guests: List<String>, header: (@Composable () -> Unit), onRemoveGuest: (String) -> Unit) {
+fun GuestList(guests: List<User>, header: (@Composable () -> Unit), onRemoveGuest: (String) -> Unit) {
     LazyColumn {
         item {
             header()
@@ -30,7 +31,7 @@ fun GuestList(guests: List<String>, header: (@Composable () -> Unit), onRemoveGu
 }
 
 @Composable
-fun GuestListItem(guest: String, onRemoveGuest: (String) -> Unit) {
+fun GuestListItem(guest: User, onRemoveGuest: (String) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -40,7 +41,7 @@ fun GuestListItem(guest: String, onRemoveGuest: (String) -> Unit) {
     ) {
         // Display the guest name
         Text(
-            text = guest,
+            text = guest.name,
             color = MaterialTheme.colorScheme.onPrimaryContainer,
             modifier = Modifier.padding(16.dp)
         )
@@ -51,7 +52,7 @@ fun GuestListItem(guest: String, onRemoveGuest: (String) -> Unit) {
             contentDescription = "Remove guest",
             modifier = Modifier
                 .padding(16.dp)
-                .clickable { onRemoveGuest(guest) }
+                .clickable { onRemoveGuest(guest.uid) }
         )
     }
 }

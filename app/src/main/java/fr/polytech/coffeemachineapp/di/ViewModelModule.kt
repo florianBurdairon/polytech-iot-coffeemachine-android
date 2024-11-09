@@ -6,6 +6,7 @@ import fr.polytech.coffeemachineapp.viewmodel.DeviceViewModel
 import fr.polytech.coffeemachineapp.viewmodel.OwnershipViewModel
 import fr.polytech.coffeemachineapp.viewmodel.PermissionsViewModel
 import fr.polytech.coffeemachineapp.viewmodel.SensorViewModel
+import fr.polytech.coffeemachineapp.viewmodel.UserViewModel
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 
@@ -16,4 +17,5 @@ val viewModelModule = module {
     viewModel{ BluetoothViewModel(get()) }
     viewModel{ OwnershipViewModel(get()) }
     viewModel{ PermissionsViewModel() }
+    viewModel{ UserViewModel(get()) }
 }
