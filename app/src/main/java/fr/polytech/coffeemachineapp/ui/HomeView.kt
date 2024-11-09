@@ -88,15 +88,35 @@ fun HomeView(navigator: DestinationsNavigator, snackbarHostState: SnackbarHostSt
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         permissionsViewModel.updatePermissionStatus(permissionState.copy(hasCameraPermission = isGranted))
+        if(isGranted) {
+            scope.launch {
+                snackbarHostState.showSnackbar("Camera permission granted.")
+            }
+        }
+        else {
+            scope.launch {
+                snackbarHostState.showSnackbar("Camera permission is required to add devices to your account.")
+            }
+        }
     }
     val bluetoothPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { isGranted ->
         permissionsViewModel.updatePermissionStatus(permissionState.copy(hasBluetoothPermission = isGranted.values.all { it }))
+        if (isGranted.values.all { it }){
+            scope.launch {
+                snackbarHostState.showSnackbar("Bluetooth permissions granted.")
+            }
+        }
+        else {
+            scope.launch {
+                snackbarHostState.showSnackbar("Bluetooth permissions are required to set up new devices.")
+            }
+        }
     }
 
     // Function to check and request camera permission
-    fun checkAndRequestCameraPermission(onGranted: () -> Unit = {}, onDenied: () -> Unit = {}) {
+    fun checkAndRequestCameraPermission(onGranted: () -> Unit = {}) {
         // Permission to check and request for camera
         val cameraPermission = Manifest.permission.CAMERA
         when {
@@ -112,13 +132,12 @@ fun HomeView(navigator: DestinationsNavigator, snackbarHostState: SnackbarHostSt
             // Request the camera permission
             else -> {
                 cameraPermissionLauncher.launch(cameraPermission)
-                onDenied()
             }
         }
     }
 
     // Function to check and request Bluetooth permission
-    fun checkAndRequestBluetoothPermission(onGranted: () -> Unit = {}, onDenied: () -> Unit = {}) {
+    fun checkAndRequestBluetoothPermission(onGranted: () -> Unit = {}) {
         // List of permissions to check and request for Bluetooth
         val bluetoothPermissions = listOf(
             Manifest.permission.BLUETOOTH_CONNECT,
@@ -137,7 +156,6 @@ fun HomeView(navigator: DestinationsNavigator, snackbarHostState: SnackbarHostSt
             // Request the Bluetooth permissions
             else -> {
                 bluetoothPermissionLauncher.launch(bluetoothPermissions.toTypedArray())
-                onDenied()
             }
         }
     }
@@ -233,11 +251,6 @@ fun HomeView(navigator: DestinationsNavigator, snackbarHostState: SnackbarHostSt
                                         ownershipViewModel.addGuest(qrData)
                                     }
                                 }
-                            },
-                            onDenied = {
-                                scope.launch {
-                                    snackbarHostState.showSnackbar("Camera permissions are required to add devices to your account.")
-                                }
                             }
                         )
                     },
@@ -246,11 +259,6 @@ fun HomeView(navigator: DestinationsNavigator, snackbarHostState: SnackbarHostSt
                         checkAndRequestBluetoothPermission(
                             onGranted = {
                                 navigator.navigate(BluetoothListViewDestination)
-                            },
-                            onDenied = {
-                                scope.launch {
-                                    snackbarHostState.showSnackbar("Bluetooth permissions are required to set up new devices.")
-                                }
                             }
                         )
                     }
