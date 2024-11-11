@@ -28,8 +28,6 @@ interface BluetoothRepository {
     fun startDiscovery()
     fun stopDiscovery()
 
-    fun release()
-
     fun connect(device: BluetoothDevice)
     fun disconnect()
     fun write(message: String)
@@ -69,7 +67,7 @@ class BluetoothRepositoryImpl(private val context: Context) : BluetoothRepositor
         get() = _pairedDevices.asStateFlow()
 
     private val foundDeviceReceiver = FoundDeviceReceiver { device ->
-        _scannedDevices.update { devices -> if(device in devices) devices else devices + device }
+        _scannedDevices.update { devices -> if(device in devices || device.name == null) devices else devices + device }
     }
 
     private val bluetoothListenerThread = Thread {
@@ -114,9 +112,6 @@ class BluetoothRepositoryImpl(private val context: Context) : BluetoothRepositor
             return
         }
         bluetoothAdapter?.cancelDiscovery()
-    }
-
-    override fun release() {
         context.unregisterReceiver(foundDeviceReceiver)
     }
 
