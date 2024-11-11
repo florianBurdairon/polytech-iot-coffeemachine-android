@@ -18,7 +18,9 @@ class UserViewModel(private val firebaseRepository: FirebaseRepository): ViewMod
 
     fun updateUser(user: User) {
         viewModelScope.launch {
-            firebaseRepository.sendData(user, "$userPath/${user.uid}")
+            if (user.uid.isNotEmpty()) {
+                firebaseRepository.sendData(user, "$userPath/${user.uid}")
+            }
         }
     }
 }

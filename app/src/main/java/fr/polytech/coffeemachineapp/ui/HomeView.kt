@@ -1,6 +1,7 @@
 package fr.polytech.coffeemachineapp.ui
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.pm.PackageManager
 import android.util.Log
@@ -57,6 +58,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.getViewModel
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Destination(start = true)
 @Composable
 fun HomeView(navigator: DestinationsNavigator, snackbarHostState: SnackbarHostState, scope: CoroutineScope) {
@@ -225,6 +227,7 @@ fun HomeView(navigator: DestinationsNavigator, snackbarHostState: SnackbarHostSt
         )
     }
 
+    // Show the home screen UI
     Scaffold (
         floatingActionButton = {
             // Add a floating action button if needed
@@ -265,10 +268,10 @@ fun HomeView(navigator: DestinationsNavigator, snackbarHostState: SnackbarHostSt
                 )
             }
         }
-    ) { innerPadding ->
+    ) { _ ->
         when (authState) {
             is AuthState.Authenticated -> {
-                Column (modifier = Modifier.padding(innerPadding)) {
+                Column (modifier = Modifier.fillMaxSize().padding(16.dp)) {
                     DeviceList(devices = ownedDevices) {
                         // Handle device click
                         navigator.navigate(DeviceDetailViewDestination(it.mac))

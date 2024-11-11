@@ -29,7 +29,7 @@ fun DeviceList(devices: List<Device>, onDeviceClick: (Device) -> Unit) {
     LazyColumn {
         item {
             // Implement the UI for the header
-            Text(text = "List of devices", style = MaterialTheme.typography.headlineLarge, modifier = Modifier.padding(16.dp))
+            Text(text = "List of devices", style = MaterialTheme.typography.headlineLarge, modifier = Modifier.padding(top = 16.dp, bottom = 16.dp))
         }
         items(devices.size) { deviceIndex ->
             DeviceItem(device = devices[deviceIndex], onDeviceClick = onDeviceClick)
@@ -42,7 +42,7 @@ fun DeviceItem(device: Device, onDeviceClick: (Device) -> Unit) {
     // Implement the UI for each device item
     Row(modifier = Modifier
         .fillMaxWidth()
-        .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
+        .padding(top = 8.dp, bottom = 8.dp)
         .height(64.dp)
         .background(colorScheme.primaryContainer, shape = MaterialTheme.shapes.medium)
         .clickable { onDeviceClick(device) },

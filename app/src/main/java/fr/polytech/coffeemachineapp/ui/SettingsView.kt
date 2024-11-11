@@ -1,6 +1,7 @@
 package fr.polytech.coffeemachineapp.ui
 
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,35 +14,90 @@ import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import fr.polytech.coffeemachineapp.model.User
+import fr.polytech.coffeemachineapp.ui.components.EditTextField
 import fr.polytech.coffeemachineapp.ui.destinations.HomeViewDestination
 import fr.polytech.coffeemachineapp.ui.destinations.LoginViewDestination
 import fr.polytech.coffeemachineapp.viewmodel.AuthState
 import fr.polytech.coffeemachineapp.viewmodel.AuthViewModel
+import fr.polytech.coffeemachineapp.viewmodel.UserViewModel
 import org.koin.androidx.compose.getViewModel
 
 @Destination
 @Composable
 fun SettingsView(navigator: DestinationsNavigator) {
     val authViewModel: AuthViewModel = getViewModel()
+    val userViewModel: UserViewModel = getViewModel()
     val authState by authViewModel.authState.collectAsState()
 
     val context = LocalContext.current
 
+    val currentUser = remember {
+        Firebase.auth.currentUser
+    }
+    var user: User?
+    var userName by remember {
+        mutableStateOf("")
+    }
+
+    LaunchedEffect(Unit) {
+        user = userViewModel.getUser(currentUser?.uid ?: "")
+        userName = user?.name ?: ""
+    }
+
     Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        modifier = Modifier.fillMaxSize().padding(16.dp)
     ) {
         when (authState) {
             is AuthState.Authenticated -> {
+                Text(
+                    text = "Settings",
+                    style = MaterialTheme.typography.headlineLarge,
+                    modifier = Modifier.padding(top = 16.dp, bottom = 16.dp)
+                )
+                Column(
+                    modifier = Modifier
+                        .padding(top = 16.dp, bottom = 16.dp)
+                        .height(150.dp)
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.shapes.medium),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    EditTextField(
+                        value = userName,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 32.dp, end = 32.dp, top = 16.dp, bottom = 16.dp),
+                        onValueChange = { newValue, isModified ->
+                            userName = newValue
+                            if (isModified) {
+                                authViewModel.updateDisplayName(newValue)
+                                userViewModel.updateUser(User(newValue, currentUser?.uid ?: ""))
+                            }
+
+                        }
+                    )
+                    Text(
+                        text = currentUser?.email ?: "Error Email",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
                 ElevatedButton(
                     onClick = {
                         authViewModel.signOut(context) {
@@ -53,7 +109,6 @@ fun SettingsView(navigator: DestinationsNavigator) {
                     },
                     shape = RoundedCornerShape(15.dp),
                     modifier = Modifier
-                        .padding(32.dp)
                         .fillMaxWidth()
                         .height(50.dp),
                     colors = ButtonDefaults.buttonColors(
