@@ -53,6 +53,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.core.splashscreen)
     implementation(libs.gson)
     implementation(libs.play.services.code.scanner)
     implementation(libs.kotlinx.coroutines.play.services)
