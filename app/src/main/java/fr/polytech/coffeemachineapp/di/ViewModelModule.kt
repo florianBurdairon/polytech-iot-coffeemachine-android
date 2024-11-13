@@ -1,5 +1,6 @@
 package fr.polytech.coffeemachineapp.di
 
+import fr.polytech.coffeemachineapp.utils.BLEScannerViewModel
 import fr.polytech.coffeemachineapp.viewmodel.AuthViewModel
 import fr.polytech.coffeemachineapp.viewmodel.BluetoothViewModel
 import fr.polytech.coffeemachineapp.viewmodel.DeviceViewModel
@@ -18,4 +19,5 @@ val viewModelModule = module {
     viewModel{ OwnershipViewModel(get()) }
     viewModel{ PermissionsViewModel() }
     viewModel{ UserViewModel(get()) }
+    viewModel{ BLEScannerViewModel(get()) }
 }

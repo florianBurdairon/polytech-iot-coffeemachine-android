@@ -1,6 +1,7 @@
 package fr.polytech.coffeemachineapp.ui
 
 import android.content.pm.PackageManager
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -9,8 +10,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -18,7 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,23 +26,33 @@ import androidx.compose.ui.unit.dp
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import fr.polytech.coffeemachineapp.ui.components.BluetoothDeviceList
+import fr.polytech.coffeemachineapp.ui.components.ScanButton
 import fr.polytech.coffeemachineapp.ui.destinations.HomeViewDestination
+import fr.polytech.coffeemachineapp.utils.BLEScannerViewModel
 import fr.polytech.coffeemachineapp.viewmodel.AuthState
 import fr.polytech.coffeemachineapp.viewmodel.AuthViewModel
 import fr.polytech.coffeemachineapp.viewmodel.BluetoothViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.getViewModel
 
 @Destination
 @Composable
-fun BluetoothListView(navigator: DestinationsNavigator) {
+fun BluetoothListView(navigator: DestinationsNavigator, scope: CoroutineScope) {
+    // Get the view models
     val authViewModel: AuthViewModel = getViewModel()
-    val authState by authViewModel.authState.collectAsState()
     val bluetoothViewModel: BluetoothViewModel = getViewModel()
+    val bleScannerViewModel: BLEScannerViewModel = getViewModel()
+
+    // Get the state from the view models
+    val authState by authViewModel.authState.collectAsState()
     val state by bluetoothViewModel.state.collectAsState()
+    val scanResults by bleScannerViewModel.scanResults.collectAsState()
 
     val context = LocalContext.current
 
-    var isScanning by remember { mutableStateOf(false) }
+    var isScanning by rememberSaveable { mutableStateOf(false) }
 
     if (
         authState !is AuthState.Authenticated ||
@@ -76,42 +85,27 @@ fun BluetoothListView(navigator: DestinationsNavigator) {
                 )
             }
             Spacer(modifier = Modifier.weight(1f))
-            if(isScanning) {
-                Button(
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                        disabledContainerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
-                        disabledContentColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f)
-                    ),
-                    shape = MaterialTheme.shapes.medium,
-                    onClick = {
-                        bluetoothViewModel.stopScan()
+            ScanButton(
+                isScanning,
+                onClick = {
+                    if (!isScanning) {
+                        bleScannerViewModel.startScan()
+                        isScanning = true
+                        scope.launch {
+                            delay(30000) // Delay for 30 seconds
+                            bleScannerViewModel.stopScan()
+                            isScanning = false
+                        }
+                    }
+                    else {
+                        bleScannerViewModel.stopScan()
                         isScanning = false
                     }
-                ) {
-                    Text("Stop")
                 }
-            } else {
-                Button(
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                        disabledContainerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
-                        disabledContentColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f)
-                    ),
-                    shape = MaterialTheme.shapes.medium,
-                    onClick = {
-                        bluetoothViewModel.startScan()
-                        isScanning = true
-                    }
-                ) {
-                    Text("Scan")
-                }
-            }
+            )
         }
-        BluetoothDeviceList(state.pairedDevices, state.scannedDevices) { device ->
-            bluetoothViewModel.connectDevice(device)
+        BluetoothDeviceList(state.pairedDevices, scanResults.map { it.device }) { device ->
+            Toast.makeText(context, "Connecting to ${device.name}", Toast.LENGTH_SHORT).show()
         }
     }
 }

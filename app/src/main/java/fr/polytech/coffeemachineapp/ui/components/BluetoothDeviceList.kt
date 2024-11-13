@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
+@SuppressLint("MissingPermission")
 @Composable
 fun BluetoothDeviceList(pairedDevices: List<BluetoothDevice>, scannedDevices: List<BluetoothDevice>, onDeviceSelected: (BluetoothDevice) -> Unit) {
     LazyColumn(
@@ -43,7 +44,7 @@ fun BluetoothDeviceList(pairedDevices: List<BluetoothDevice>, scannedDevices: Li
             )
         }
         // Show the list of scanned devices
-        items(scannedDevices) {
+        items(scannedDevices.filter { !pairedDevices.contains(it) && it.name != null }) {
             BluetoothDeviceListItem(device = it, onDeviceSelected = onDeviceSelected)
         }
     }
