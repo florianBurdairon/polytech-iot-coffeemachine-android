@@ -13,16 +13,15 @@ val bluetoothModule = module {
         return BluetoothRepositoryImpl(context)
     }
 
-    fun provideBluetoothAdapter(context: Context): BluetoothAdapter? {
-        val bluetoothManager by lazy {
-            context.getSystemService(BluetoothManager::class.java)
-        }
-        val bluetoothAdapter by lazy {
-            bluetoothManager?.adapter
-        }
-        return bluetoothAdapter
+    fun provideBluetoothManager(context: Context): BluetoothManager? {
+        return context.getSystemService(BluetoothManager::class.java)
+    }
+
+    fun provideBluetoothAdapter(bluetoothManager: BluetoothManager?): BluetoothAdapter? {
+        return bluetoothManager?.adapter
     }
 
     single { provideBluetoothRepository(androidContext()) }
-    single { provideBluetoothAdapter(androidContext()) }
+    single { provideBluetoothManager(androidContext()) }
+    single { provideBluetoothAdapter(get()) }
 }

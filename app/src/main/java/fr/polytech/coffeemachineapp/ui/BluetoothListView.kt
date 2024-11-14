@@ -1,5 +1,6 @@
 package fr.polytech.coffeemachineapp.ui
 
+import android.bluetooth.BluetoothDevice
 import android.content.pm.PackageManager
 import android.widget.Toast
 import androidx.compose.foundation.clickable
@@ -28,10 +29,9 @@ import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import fr.polytech.coffeemachineapp.ui.components.BluetoothDeviceList
 import fr.polytech.coffeemachineapp.ui.components.ScanButton
 import fr.polytech.coffeemachineapp.ui.destinations.HomeViewDestination
-import fr.polytech.coffeemachineapp.utils.BLEScannerViewModel
+import fr.polytech.coffeemachineapp.viewmodel.BLEViewModel
 import fr.polytech.coffeemachineapp.viewmodel.AuthState
 import fr.polytech.coffeemachineapp.viewmodel.AuthViewModel
-import fr.polytech.coffeemachineapp.viewmodel.BluetoothViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -42,19 +42,19 @@ import org.koin.androidx.compose.getViewModel
 fun BluetoothListView(navigator: DestinationsNavigator, scope: CoroutineScope) {
     // Get the view models
     val authViewModel: AuthViewModel = getViewModel()
-    val bluetoothViewModel: BluetoothViewModel = getViewModel()
-    val bleScannerViewModel: BLEScannerViewModel = getViewModel()
+    val bleViewModel: BLEViewModel = getViewModel()
 
     // Get the state from the view models
     val authState by authViewModel.authState.collectAsState()
-    val state by bluetoothViewModel.state.collectAsState()
-    val scanResults by bleScannerViewModel.scanResults.collectAsState()
+    val scanResults by bleViewModel.scanResults.collectAsState()
 
     val context = LocalContext.current
 
     var isScanning by rememberSaveable { mutableStateOf(false) }
+    val connectedDevices: List<BluetoothDevice> = bleViewModel.getConnectedDevices()
 
     if (
+        !bleViewModel.isBluetoothAvailable() ||
         authState !is AuthState.Authenticated ||
         context.checkSelfPermission(android.Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED ||
         context.checkSelfPermission(android.Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED
@@ -89,22 +89,22 @@ fun BluetoothListView(navigator: DestinationsNavigator, scope: CoroutineScope) {
                 isScanning,
                 onClick = {
                     if (!isScanning) {
-                        bleScannerViewModel.startScan()
+                        bleViewModel.startScan()
                         isScanning = true
                         scope.launch {
                             delay(30000) // Delay for 30 seconds
-                            bleScannerViewModel.stopScan()
+                            bleViewModel.stopScan()
                             isScanning = false
                         }
                     }
                     else {
-                        bleScannerViewModel.stopScan()
+                        bleViewModel.stopScan()
                         isScanning = false
                     }
                 }
             )
         }
-        BluetoothDeviceList(state.pairedDevices, scanResults.map { it.device }) { device ->
+        BluetoothDeviceList(connectedDevices, bleViewModel.getBondedDevices(), scanResults.map { it.device }) { device ->
             Toast.makeText(context, "Connecting to ${device.name}", Toast.LENGTH_SHORT).show()
         }
     }
