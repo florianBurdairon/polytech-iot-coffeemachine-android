@@ -28,10 +28,11 @@ import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import fr.polytech.coffeemachineapp.ui.components.BluetoothDeviceList
 import fr.polytech.coffeemachineapp.ui.components.ScanButton
+import fr.polytech.coffeemachineapp.ui.destinations.DeviceSetupViewDestination
 import fr.polytech.coffeemachineapp.ui.destinations.HomeViewDestination
-import fr.polytech.coffeemachineapp.viewmodel.BLEViewModel
 import fr.polytech.coffeemachineapp.viewmodel.AuthState
 import fr.polytech.coffeemachineapp.viewmodel.AuthViewModel
+import fr.polytech.coffeemachineapp.viewmodel.BLEViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -52,6 +53,7 @@ fun BluetoothListView(navigator: DestinationsNavigator, scope: CoroutineScope) {
 
     var isScanning by rememberSaveable { mutableStateOf(false) }
     val connectedDevices: List<BluetoothDevice> = bleViewModel.getConnectedDevices()
+    val bondedDevices: List<BluetoothDevice> = bleViewModel.getBondedDevices()
 
     if (
         !bleViewModel.isBluetoothAvailable() ||
@@ -89,9 +91,9 @@ fun BluetoothListView(navigator: DestinationsNavigator, scope: CoroutineScope) {
                 isScanning,
                 onClick = {
                     if (!isScanning) {
-                        bleViewModel.startScan()
                         isScanning = true
                         scope.launch {
+                            bleViewModel.startScan()
                             delay(30000) // Delay for 30 seconds
                             bleViewModel.stopScan()
                             isScanning = false
@@ -104,8 +106,9 @@ fun BluetoothListView(navigator: DestinationsNavigator, scope: CoroutineScope) {
                 }
             )
         }
-        BluetoothDeviceList(connectedDevices, bleViewModel.getBondedDevices(), scanResults.map { it.device }) { device ->
+        BluetoothDeviceList(connectedDevices, bondedDevices, scanResults.map { it.device }) { device ->
             Toast.makeText(context, "Connecting to ${device.name}", Toast.LENGTH_SHORT).show()
+            navigator.navigate(DeviceSetupViewDestination(device = device))
         }
     }
 }
