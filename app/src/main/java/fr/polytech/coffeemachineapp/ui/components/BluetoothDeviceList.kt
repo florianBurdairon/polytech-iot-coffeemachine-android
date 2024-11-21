@@ -10,69 +10,70 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import fr.polytech.coffeemachineapp.R
 
 
 @SuppressLint("MissingPermission")
 @Composable
-fun BluetoothDeviceList(connectedDevices: List<BluetoothDevice>, pairedDevices: List<BluetoothDevice>, scannedDevices: List<BluetoothDevice>, onDeviceSelected: (BluetoothDevice) -> Unit) {
+fun BluetoothDeviceList(
+    scannedDevices: List<BluetoothDevice>,
+    isScanning: Boolean,
+    onDeviceSelected: (BluetoothDevice) -> Unit,
+    onScanStart: () -> Unit,
+) {
     LazyColumn(
         modifier = Modifier.fillMaxWidth()
     ) {
-        if (connectedDevices.isNotEmpty()) {
-            item {
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 32.dp, top = 16.dp, bottom = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text(
-                    text = "Connected Devices",
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(16.dp)
+                    text = "Detected Devices",
+                    style = MaterialTheme.typography.headlineLarge,
                 )
-            }
-            // Show the list of connected devices
-            items(connectedDevices) {
-                BluetoothDeviceListItem(
-                    device = it,
-                    connectionState = BluetoothDeviceState.CONNECTED,
-                    onDeviceSelected = onDeviceSelected
-                )
+                if (!isScanning) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.refresh_24dp),
+                        tint = MaterialTheme.colorScheme.primary,
+                        contentDescription = "Refresh devices",
+                        modifier = Modifier.size(32.dp).clickable { onScanStart() }
+                    )
+                } else {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(32.dp),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
         }
-        if (pairedDevices.isNotEmpty()) {
+        if (scannedDevices.isEmpty()) {
             item {
                 Text(
-                    text = "Paired Devices",
+                    text = "No devices found",
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(16.dp)
                 )
             }
-            // Show the list of paired devices
-            items(pairedDevices.filter { !connectedDevices.contains(it) }) {
-                BluetoothDeviceListItem(
-                    device = it,
-                    connectionState = BluetoothDeviceState.PAIRED,
-                    onDeviceSelected = onDeviceSelected
-                )
-            }
-        }
-        if (scannedDevices.isNotEmpty()) {
-            item {
-                Text(
-                    text = "Scanned Devices",
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(16.dp)
-                )
-            }
+        } else {
             // Show the list of scanned devices
-            items(scannedDevices.filter { !pairedDevices.contains(it) && it.name != null }) {
+            items(scannedDevices) {
                 BluetoothDeviceListItem(
                     device = it,
-                    connectionState = BluetoothDeviceState.NOT_PAIRED,
                     onDeviceSelected = onDeviceSelected
                 )
             }
@@ -82,7 +83,7 @@ fun BluetoothDeviceList(connectedDevices: List<BluetoothDevice>, pairedDevices: 
 
 @SuppressLint("MissingPermission")
 @Composable
-fun BluetoothDeviceListItem(device: BluetoothDevice, connectionState: BluetoothDeviceState, onDeviceSelected: (BluetoothDevice) -> Unit) {
+fun BluetoothDeviceListItem(device: BluetoothDevice, onDeviceSelected: (BluetoothDevice) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -112,21 +113,11 @@ fun BluetoothDeviceListItem(device: BluetoothDevice, connectionState: BluetoothD
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
         }
-        Text(
-            text = when(connectionState) {
-                BluetoothDeviceState.CONNECTED -> "Connected"
-                BluetoothDeviceState.PAIRED -> "Paired"
-                BluetoothDeviceState.NOT_PAIRED -> "Not Paired"
-            },
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onPrimaryContainer,
-            modifier = Modifier.padding(8.dp)
+        Icon(
+            painter = painterResource(id = R.drawable.bluetooth_24dp),
+            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+            contentDescription = "Bluetooth device",
+            modifier = Modifier.size(24.dp)
         )
     }
-}
-
-enum class BluetoothDeviceState {
-    CONNECTED,
-    PAIRED,
-    NOT_PAIRED
 }

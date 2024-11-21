@@ -2,15 +2,13 @@ package fr.polytech.coffeemachineapp.viewmodel
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothManager
-import android.bluetooth.BluetoothProfile
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.polytech.coffeemachineapp.utils.BLEScanCallBack
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,11 +17,12 @@ import kotlinx.coroutines.launch
 
 
 class BLEViewModel(
-    private val bluetoothManager: BluetoothManager?,
     private val bluetoothAdapter: BluetoothAdapter?
 ) : ViewModel() {
     private var _scanResults: MutableStateFlow<List<ScanResult>> = MutableStateFlow(listOf())
     val scanResults: StateFlow<List<ScanResult>> = _scanResults.asStateFlow()
+    private var _isScanning: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isScanning: StateFlow<Boolean> = _isScanning.asStateFlow()
 
     private val bluetoothLeScanner = bluetoothAdapter?.bluetoothLeScanner
 
@@ -34,6 +33,7 @@ class BLEViewModel(
 
     @SuppressLint("MissingPermission")
     val scanCallback = BLEScanCallBack(
+        serviceUUID = "12345678-1234-1234-1234-123456789abc",
         onScanResult = { result ->
             val mutableList = scanResults.value.toMutableList()
             val indexQuery = scanResults.value.indexOfFirst { it.device.address == result.device.address }
@@ -57,29 +57,24 @@ class BLEViewModel(
     @SuppressLint("MissingPermission")
     fun startScan() {
         Log.d("BLEScanner","Starting Scan...")
+        _scanResults.update { listOf() }
+        _isScanning.update { true }
         bluetoothLeScanner?.startScan(
             null,
             scanSettings,
             scanCallback
         )
+        viewModelScope.launch {
+            delay(30000) // Delay for 30 seconds
+            stopScan()
+            _isScanning.update { false }
+        }
     }
 
     @SuppressLint("MissingPermission")
     fun stopScan() {
         bluetoothLeScanner?.stopScan(scanCallback)
         Log.d("BLEScanner","Stopping Scan...")
-    }
-
-    @SuppressLint("MissingPermission")
-    fun getBondedDevices(): List<BluetoothDevice> {
-        return bluetoothAdapter?.bondedDevices?.filter{
-            it.type == BluetoothDevice.DEVICE_TYPE_LE
-        }?.toList() ?: listOf()
-    }
-
-    @SuppressLint("MissingPermission")
-    fun getConnectedDevices(profile: Int = BluetoothProfile.GATT): List<BluetoothDevice> {
-        return bluetoothManager?.getConnectedDevices(profile) ?: listOf()
     }
 
     fun isBluetoothAvailable(): Boolean {
