@@ -99,7 +99,7 @@ fun BluetoothListView(navigator: DestinationsNavigator, scope: CoroutineScope) {
             },
             onDeviceSelected = { device ->
                 Toast.makeText(context, "Connecting to ${device.name}", Toast.LENGTH_SHORT).show()
-                navigator.navigate(DeviceSetupViewDestination(device = device))
+                navigator.navigate(DeviceSetupViewDestination(bluetoothDevice = device))
             }
         )
     }

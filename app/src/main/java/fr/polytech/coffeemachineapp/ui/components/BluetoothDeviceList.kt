@@ -117,7 +117,7 @@ fun BluetoothDeviceListItem(device: BluetoothDevice, onDeviceSelected: (Bluetoot
             painter = painterResource(id = R.drawable.bluetooth_24dp),
             tint = MaterialTheme.colorScheme.onPrimaryContainer,
             contentDescription = "Bluetooth device",
-            modifier = Modifier.size(24.dp)
+            modifier = Modifier.size(24.dp).padding(16.dp)
         )
     }
 }

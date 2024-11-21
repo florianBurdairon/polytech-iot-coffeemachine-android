@@ -2,8 +2,10 @@ package fr.polytech.coffeemachineapp.repository
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCallback
 import android.bluetooth.BluetoothGattCharacteristic
+import android.bluetooth.BluetoothProfile
 import android.content.Context
 import android.util.Log
 import androidx.annotation.RequiresPermission
@@ -11,46 +13,134 @@ import java.util.UUID
 
 interface BLERepository {
     @RequiresPermission(value = "android. permission. BLUETOOTH_CONNECT")
-    fun writeCharacteristic(device: BluetoothDevice, serviceUUID: UUID, characteristicUUID: UUID, data: String, gattCallback: BluetoothGattCallback? = null)
+    fun writeCharacteristic(
+        device: BluetoothDevice,
+        serviceUUID: UUID,
+        characteristicUUID: UUID,
+        data: String,
+        onWriteSuccess: () -> Unit = {},
+        onWriteFailure: () -> Unit = {}
+    )
     @RequiresPermission(value = "android. permission. BLUETOOTH_CONNECT")
-    fun readCharacteristic(device: BluetoothDevice, serviceUUID: UUID, characteristicUUID: UUID)
+    fun readCharacteristic(
+        device: BluetoothDevice,
+        serviceUUID: UUID,
+        characteristicUUID: UUID,
+        onReadSuccess: (String) -> Unit,
+        onReadFailure: () -> Unit = {}
+    )
 }
 
-@SuppressLint("MissingPermission")
 class BLERepositoryImpl(private val context: Context) : BLERepository {
+    @SuppressLint("NewApi", "MissingPermission")
     override fun writeCharacteristic(
         device: BluetoothDevice,
         serviceUUID: UUID,
         characteristicUUID: UUID,
         data: String,
-        gattCallback: BluetoothGattCallback?
+        onWriteSuccess: () -> Unit,
+        onWriteFailure: () -> Unit
     ) {
-        val wifiCredentialBytes = data.toByteArray()
-        val deviceGatt = device.connectGatt(context, false, gattCallback)
-        val wifiCredentialCharacteristic = deviceGatt.getService(serviceUUID)?.getCharacteristic(characteristicUUID)
-        if (wifiCredentialCharacteristic != null) {
-            Log.d("BLEViewModel", "Sending wifi credential to BLE device")
-            deviceGatt.writeCharacteristic(wifiCredentialCharacteristic, wifiCredentialBytes, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT)
+        val gattCallback = object : BluetoothGattCallback() {
+            override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
+                if (newState == BluetoothProfile.STATE_CONNECTED) {
+                    gatt.discoverServices() // Start service discovery
+                }
+                else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                    Log.d("BLEViewModel", "Disconnected from BLE device")
+                    onWriteFailure()
+                    gatt.close()
+                }
+            }
+
+            override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
+                if (status == BluetoothGatt.GATT_SUCCESS) {
+                    val service = gatt.getService(serviceUUID)
+                    val characteristic = service?.getCharacteristic(characteristicUUID)
+                    if (service == null) {
+                        Log.e("BLEViewModel", "Service not found")
+                        onWriteFailure()
+                        gatt.close()
+                    } else if (characteristic != null) {
+                        Log.d("BLEViewModel", "Sending wifi credential to BLE device")
+                        gatt.writeCharacteristic(characteristic, data.toByteArray(), BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE)
+                    } else {
+                        Log.e("BLEViewModel", "Characteristic not found")
+                        onWriteFailure()
+                        gatt.close()
+                    }
+                }
+            }
+
+            override fun onCharacteristicWrite(
+                gatt: BluetoothGatt?,
+                characteristic: BluetoothGattCharacteristic?,
+                status: Int
+            ) {
+                super.onCharacteristicWrite(gatt, characteristic, status)
+                if (status == BluetoothGatt.GATT_SUCCESS) {
+                    Log.d("BLEViewModel", "Write data to BLE device successfully")
+                    onWriteSuccess()
+                    gatt?.close()
+                }
+                else {
+                    Log.e("BLEViewModel", "Failed to write data to BLE device")
+                    onWriteFailure()
+                    gatt?.close()
+                }
+            }
         }
-        else {
-            Log.e("BLEViewModel", "Characteristic not found")
-        }
+        device.connectGatt(context, false, gattCallback)
     }
 
+    @SuppressLint("MissingPermission")
     override fun readCharacteristic(
         device: BluetoothDevice,
         serviceUUID: UUID,
-        characteristicUUID: UUID
+        characteristicUUID: UUID,
+        onReadSuccess: (String) -> Unit,
+        onReadFailure: () -> Unit
     ) {
-        val deviceGatt = device.connectGatt(context, false, null)
-        val characteristic = deviceGatt.getService(serviceUUID)?.getCharacteristic(characteristicUUID)
-        if (characteristic != null) {
-            Log.d("BLEViewModel", "Reading characteristic from BLE device")
-            deviceGatt.readCharacteristic(characteristic)
+        val gattCallback = object : BluetoothGattCallback() {
+            override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
+                if (newState == BluetoothProfile.STATE_CONNECTED) {
+                    gatt.discoverServices() // Start service discovery
+                }
+                else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                    Log.d("BLEViewModel", "Disconnected from BLE device")
+                    onReadFailure()
+                }
+            }
+
+            override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
+                if (status == BluetoothGatt.GATT_SUCCESS) {
+                    val service = gatt.getService(serviceUUID)
+                    val characteristic = service?.getCharacteristic(characteristicUUID)
+                    if (service == null) {
+                        Log.e("BLEViewModel", "Service not found")
+                        onReadFailure()
+                    } else if (characteristic != null) {
+                        gatt.readCharacteristic(characteristic)
+                    } else {
+                        Log.e("BLEViewModel", "Characteristic not found")
+                        onReadFailure()
+                    }
+                }
+            }
+
+            override fun onCharacteristicRead(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic, value: ByteArray, status: Int) {
+                if (status == BluetoothGatt.GATT_SUCCESS) {
+                    val data = String(value)
+                    Log.d("BLEViewModel", "Read data from BLE device: $data")
+                    onReadSuccess(data)
+                }
+                else {
+                    Log.e("BLEViewModel", "Failed to read data from BLE device")
+                    onReadFailure()
+                }
+            }
         }
-        else {
-            Log.e("BLEViewModel", "Characteristic not found")
-        }
+        device.connectGatt(context, false, gattCallback)
     }
 
 }

@@ -3,7 +3,6 @@ package fr.polytech.coffeemachineapp.viewmodel
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothGattCallback
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.util.Log
@@ -100,7 +99,7 @@ class BLEViewModel(
     }
 
     @SuppressLint("MissingPermission")
-    fun sendDeviceSetup(device: BluetoothDevice, ssid: String, password: String, gattCallback: BluetoothGattCallback? = null) {
+    fun sendDeviceSetup(device: BluetoothDevice, ssid: String, password: String, onWriteSuccess: () -> Unit, onWriteFailure: () -> Unit) {
         val serviceUUID = UUID.fromString(SERVICE_UUID)
         val characteristicUUID = UUID.fromString(WIFI_CREDENTIAL_UUID)
         val wifiCredential = WifiCredential(ssid, password)
@@ -114,14 +113,21 @@ class BLEViewModel(
             serviceUUID,
             characteristicUUID,
             wifiCredentialString,
-            gattCallback
+            onWriteSuccess,
+            onWriteFailure
         )
     }
 
     @SuppressLint("MissingPermission")
-    fun readDeviceSetup(device: BluetoothDevice) {
+    fun readDeviceSetup(device: BluetoothDevice, onReadSuccess: (String) -> Unit, onReadFailure: () -> Unit) {
         val serviceUUID = UUID.fromString(SERVICE_UUID)
         val characteristicUUID = UUID.fromString(DEVICE_SETUP_UUID)
-        bleRepository.readCharacteristic(device, serviceUUID, characteristicUUID)
+        bleRepository.readCharacteristic(
+            device,
+            serviceUUID,
+            characteristicUUID,
+            onReadSuccess,
+            onReadFailure
+        )
     }
 }

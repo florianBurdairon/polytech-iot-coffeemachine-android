@@ -1,9 +1,6 @@
 package fr.polytech.coffeemachineapp.ui
 
 import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothGatt
-import android.bluetooth.BluetoothGattCallback
-import android.bluetooth.BluetoothGattCharacteristic
 import android.content.pm.PackageManager
 import android.util.Log
 import androidx.compose.foundation.clickable
@@ -11,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -58,7 +56,7 @@ import org.koin.androidx.compose.getViewModel
 
 @Destination
 @Composable
-fun DeviceSetupView(navigator: DestinationsNavigator, scope: CoroutineScope, snackbarHostState: SnackbarHostState, device: BluetoothDevice) {
+fun DeviceSetupView(navigator: DestinationsNavigator, scope: CoroutineScope, snackbarHostState: SnackbarHostState, bluetoothDevice: BluetoothDevice) {
     // Get the view models
     val authViewModel: AuthViewModel = getViewModel()
     val bleViewModel: BLEViewModel = getViewModel()
@@ -69,60 +67,12 @@ fun DeviceSetupView(navigator: DestinationsNavigator, scope: CoroutineScope, sna
 
     val context = LocalContext.current
 
-    var deviceName by rememberSaveable { mutableStateOf(device.name ?: "") }
+    var deviceName by rememberSaveable { mutableStateOf(bluetoothDevice.name ?: "") }
     var ssid by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
 
-    object : BluetoothGattCallback() {
-        var deviceData: Device? = null
-        override fun onCharacteristicRead(
-            gatt: BluetoothGatt,
-            characteristic: BluetoothGattCharacteristic,
-            value: ByteArray,
-            status: Int
-        ) {
-            super.onCharacteristicRead(gatt, characteristic, value, status)
-            if (status == BluetoothGatt.GATT_SUCCESS) {
-                val data = String(value)
-                Log.d("BLEViewModel", "Data received: $data")
-                deviceData = Gson().fromJson(data, Device::class.java)
-
-                // Read successful, send the device setup
-                bleViewModel.sendDeviceSetup(device, ssid, password, this)
-            }
-            else {
-                scope.launch {
-                    snackbarHostState.showSnackbar("Error while reading characteristic")
-                }
-            }
-        }
-
-        override fun onCharacteristicWrite(
-            gatt: BluetoothGatt?,
-            characteristic: BluetoothGattCharacteristic?,
-            status: Int
-        ) {
-            super.onCharacteristicWrite(gatt, characteristic, status)
-            if (status == BluetoothGatt.GATT_SUCCESS) {
-                // Send the wifi credential successful, add the device to the database
-                if (deviceData != null) {
-                    deviceViewModel.addDevice(deviceData!!)
-                    navigator.navigate(HomeViewDestination)
-                }
-                else {
-                    scope.launch {
-                        snackbarHostState.showSnackbar("Error while sending device to database")
-                    }
-                }
-            }
-            else {
-                scope.launch {
-                    snackbarHostState.showSnackbar("Error while sending device setup")
-                }
-            }
-        }
-    }
+    var device by rememberSaveable { mutableStateOf<Device?>(null) }
 
     if (
         !bleViewModel.isBluetoothAvailable() ||
@@ -135,7 +85,7 @@ fun DeviceSetupView(navigator: DestinationsNavigator, scope: CoroutineScope, sna
 
     Column {
         Row(
-            modifier = Modifier.padding(start = 16.dp, end = 16.dp),
+            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
             horizontalArrangement = Arrangement.Start,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -239,14 +189,62 @@ fun DeviceSetupView(navigator: DestinationsNavigator, scope: CoroutineScope, sna
             Button(
                 onClick = {
                     // Read the characteristic of the device
-                    bleViewModel.readDeviceSetup(device)
+                    bleViewModel.readDeviceSetup(
+                        bluetoothDevice,
+                        onReadSuccess = { deviceData ->
+                            // Read successful, parse the device data
+                            Log.d("BLEViewModel", "Data received: $deviceData")
+                            device = Gson().fromJson(deviceData, Device::class.java)
+
+                            // Send the device setup
+                            bleViewModel.sendDeviceSetup(
+                                bluetoothDevice,
+                                ssid,
+                                password,
+                                onWriteSuccess = {
+                                    // Send the wifi credential successful, add the device to the database
+                                    if (device != null) {
+                                        deviceViewModel.addDevice(device!!.copy(name = deviceName))
+                                        scope.launch {
+                                            navigator.navigate(HomeViewDestination)
+                                        }
+                                    }
+                                    else {
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar("Error while sending device to database")
+                                        }
+                                    }
+                                },
+                                onWriteFailure = {
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar("Error while sending device setup")
+                                    }
+                                }
+                            )
+                        },
+                        onReadFailure = {
+                            scope.launch {
+                                snackbarHostState.showSnackbar("Error while reading characteristic")
+                            }
+                        }
+                    )
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = colorScheme.primaryContainer,
                     contentColor = colorScheme.onPrimaryContainer
                 ),
                 shape = MaterialTheme.shapes.medium,
-            ) { }
+                modifier = Modifier
+                    .padding(32.dp)
+                    .fillMaxWidth()
+                    .height(50.dp)
+            ) {
+                Text(
+                    text = "Connect",
+                    style = typography.labelLarge,
+                    color = colorScheme.onPrimaryContainer
+                )
+            }
         }
     }
 }

@@ -18,6 +18,7 @@ class BLEScanCallBack(
         if (scanRecord != null) {
             val serviceUuids = scanRecord.serviceUuids
             if (serviceUuids != null && (serviceUUID == null || serviceUuids.contains(ParcelUuid.fromString(serviceUUID)))) {
+                Log.d("ScanCallback", "Found BLE device with service UUID: $serviceUUID")
                 onScanResult(result)
             }
             else {
