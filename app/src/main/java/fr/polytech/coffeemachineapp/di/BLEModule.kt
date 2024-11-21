@@ -3,14 +3,14 @@ package fr.polytech.coffeemachineapp.di
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import android.content.Context
-import fr.polytech.coffeemachineapp.repository.BluetoothRepository
-import fr.polytech.coffeemachineapp.repository.BluetoothRepositoryImpl
+import fr.polytech.coffeemachineapp.repository.BLERepository
+import fr.polytech.coffeemachineapp.repository.BLERepositoryImpl
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
 val bluetoothModule = module {
-    fun provideBluetoothRepository(context: Context): BluetoothRepository {
-        return BluetoothRepositoryImpl(context)
+    fun provideBLERepository(context: Context): BLERepository {
+        return BLERepositoryImpl(context)
     }
 
     fun provideBluetoothManager(context: Context): BluetoothManager? {
@@ -21,7 +21,7 @@ val bluetoothModule = module {
         return bluetoothManager?.adapter
     }
 
-    single { provideBluetoothRepository(androidContext()) }
+    single { provideBLERepository(androidContext()) }
     single { provideBluetoothManager(androidContext()) }
     single { provideBluetoothAdapter(get()) }
 }

@@ -17,5 +17,5 @@ val viewModelModule = module {
     viewModel{ OwnershipViewModel(get()) }
     viewModel{ PermissionsViewModel() }
     viewModel{ UserViewModel(get()) }
-    viewModel{ BLEViewModel(get()) }
+    viewModel{ BLEViewModel(get(), get()) }
 }

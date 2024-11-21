@@ -5,9 +5,10 @@ import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 import android.os.ParcelUuid
 import android.util.Log
+import fr.polytech.coffeemachineapp.utils.Constant.Companion.SERVICE_UUID
 
 class BLEScanCallBack(
-    private val serviceUUID: String? = "12345678-1234-1234-1234-123456789abc",
+    private val serviceUUID: String? = SERVICE_UUID,
     val onScanResult: (scanResult: ScanResult) -> Unit,
     val onScanResultFailed: (errorCode: Int) -> Unit
 ): ScanCallback() {

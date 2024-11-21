@@ -88,4 +88,10 @@ class DeviceViewModel(private val firebaseRepository: FirebaseRepository) : View
             _selectedDevice.update { null }
         }
     }
+
+    fun addDevice(device: Device) {
+        viewModelScope.launch {
+            firebaseRepository.sendData(device,"$devicesPath/${device.mac}")
+        }
+    }
 }
