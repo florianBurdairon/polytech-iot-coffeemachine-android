@@ -44,6 +44,7 @@ class BLERepositoryImpl(private val context: Context) : BLERepository {
         val gattCallback = object : BluetoothGattCallback() {
             override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
                 if (newState == BluetoothProfile.STATE_CONNECTED) {
+                    gatt.requestMtu(512) // Request MTU size
                     gatt.discoverServices() // Start service discovery
                 }
                 else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
