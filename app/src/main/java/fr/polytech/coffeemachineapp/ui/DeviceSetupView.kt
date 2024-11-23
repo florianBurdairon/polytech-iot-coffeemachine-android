@@ -50,6 +50,7 @@ import fr.polytech.coffeemachineapp.viewmodel.AuthState
 import fr.polytech.coffeemachineapp.viewmodel.AuthViewModel
 import fr.polytech.coffeemachineapp.viewmodel.BLEViewModel
 import fr.polytech.coffeemachineapp.viewmodel.DeviceViewModel
+import fr.polytech.coffeemachineapp.viewmodel.OwnershipViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.getViewModel
@@ -61,6 +62,7 @@ fun DeviceSetupView(navigator: DestinationsNavigator, scope: CoroutineScope, sna
     val authViewModel: AuthViewModel = getViewModel()
     val bleViewModel: BLEViewModel = getViewModel()
     val deviceViewModel: DeviceViewModel = getViewModel()
+    val ownershipViewModel: OwnershipViewModel = getViewModel()
 
     // Get the state from the view models
     val authState by authViewModel.authState.collectAsState()
@@ -205,6 +207,10 @@ fun DeviceSetupView(navigator: DestinationsNavigator, scope: CoroutineScope, sna
                                     // Send the wifi credential successful, add the device to the database
                                     if (device != null) {
                                         deviceViewModel.addDevice(device!!.copy(name = deviceName))
+                                        (authState as AuthState.Authenticated).user?.let {
+                                            ownershipViewModel.addOwner(
+                                                it.uid, device!!.mac)
+                                        }
                                         scope.launch {
                                             navigator.navigate(HomeViewDestination)
                                         }

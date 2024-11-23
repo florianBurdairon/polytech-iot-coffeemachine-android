@@ -100,6 +100,24 @@ class OwnershipViewModel(private val firebaseRepository: FirebaseRepository) : V
         }
     }
 
+    fun addOwner(owner: String, mac: String) {
+        viewModelScope.launch {
+            // Add device to the owner's list
+            if (owner.isNotBlank() && mac.isNotBlank()) {
+                val ownershipListTypeIndicator: GenericTypeIndicator<List<Ownership>> =
+                    object : GenericTypeIndicator<List<Ownership>>() {}
+                val deviceList =
+                    firebaseRepository.getData("$ownershipPath/$owner", ownershipListTypeIndicator)
+                        ?.toMutableList() ?: mutableListOf()
+                val ownership = Ownership(null, mac, "owner")
+                if (!deviceList.contains(ownership)) {
+                    firebaseRepository.sendData(ownership, "$ownershipPath/$owner/$mac")
+                }
+            }
+        }
+
+    }
+
     fun removeGuest(owner: String, guest: String, mac: String) {
         viewModelScope.launch {
             // Remove guest from the owner's list
