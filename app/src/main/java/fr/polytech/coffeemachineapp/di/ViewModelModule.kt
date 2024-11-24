@@ -1,10 +1,11 @@
 package fr.polytech.coffeemachineapp.di
 
-import fr.polytech.coffeemachineapp.viewmodel.BLEViewModel
 import fr.polytech.coffeemachineapp.viewmodel.AuthViewModel
+import fr.polytech.coffeemachineapp.viewmodel.BLEViewModel
 import fr.polytech.coffeemachineapp.viewmodel.DeviceViewModel
 import fr.polytech.coffeemachineapp.viewmodel.OwnershipViewModel
 import fr.polytech.coffeemachineapp.viewmodel.PermissionsViewModel
+import fr.polytech.coffeemachineapp.viewmodel.RequestViewModel
 import fr.polytech.coffeemachineapp.viewmodel.SensorViewModel
 import fr.polytech.coffeemachineapp.viewmodel.UserViewModel
 import org.koin.androidx.viewmodel.dsl.viewModel
@@ -18,4 +19,5 @@ val viewModelModule = module {
     viewModel{ PermissionsViewModel() }
     viewModel{ UserViewModel(get()) }
     viewModel{ BLEViewModel(get(), get()) }
+    viewModel{ RequestViewModel(get()) }
 }

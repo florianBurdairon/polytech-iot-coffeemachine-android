@@ -34,26 +34,35 @@ import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import fr.polytech.coffeemachineapp.R
 import fr.polytech.coffeemachineapp.ui.components.DeviceStatusIcon
+import fr.polytech.coffeemachineapp.ui.components.RequestList
 import fr.polytech.coffeemachineapp.ui.destinations.DeviceSettingsViewDestination
 import fr.polytech.coffeemachineapp.ui.destinations.HomeViewDestination
 import fr.polytech.coffeemachineapp.viewmodel.AuthState
 import fr.polytech.coffeemachineapp.viewmodel.AuthViewModel
 import fr.polytech.coffeemachineapp.viewmodel.DeviceViewModel
 import fr.polytech.coffeemachineapp.viewmodel.OwnershipViewModel
+import fr.polytech.coffeemachineapp.viewmodel.RequestViewModel
 import fr.polytech.coffeemachineapp.viewmodel.SensorViewModel
 import org.koin.androidx.compose.getViewModel
 
 @Destination
 @Composable
 fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
+    // Initialize the view models
     val authViewModel: AuthViewModel = getViewModel()
-    val authState by authViewModel.authState.collectAsState()
     val deviceViewModel: DeviceViewModel = getViewModel()
-    val selectedDevice by deviceViewModel.selectedDevice.collectAsState()
     val sensorViewModel: SensorViewModel = getViewModel()
-    val selectedSensor by sensorViewModel.selectedSensorState.collectAsState()
     val ownershipViewModel: OwnershipViewModel = getViewModel()
+    val requestViewModel: RequestViewModel = getViewModel()
+
+    // Collect the state from the view models
+    val authState by authViewModel.authState.collectAsState()
+    val selectedDevice by deviceViewModel.selectedDevice.collectAsState()
+    val selectedSensor by sensorViewModel.selectedSensorState.collectAsState()
     val selectedOwner by ownershipViewModel.selectedOwnerState.collectAsState()
+    val requests by requestViewModel.requests.collectAsState()
+    val currentRequest by requestViewModel.currentRequest.collectAsState()
+    val nextRequest by requestViewModel.nextRequest.collectAsState()
 
     val context = LocalContext.current
 
@@ -63,10 +72,12 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
         deviceViewModel.selectDevice(selectedDeviceMac)
         sensorViewModel.selectSensor(selectedDeviceMac)
         ownershipViewModel.selectOwner((authState as AuthState.Authenticated).user?.uid ?: "")
+        requestViewModel.addRequestsListener(selectedDeviceMac)
         onDispose {
             deviceViewModel.unselectDevice()
             sensorViewModel.unselectSensor()
             ownershipViewModel.unselectOwner()
+            requestViewModel.removeRequestsListener(selectedDeviceMac)
         }
     }
 
@@ -260,6 +271,8 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
                 }
             }
         }
+        // Show the requests list
+        RequestList(requests)
     }
 }
 
