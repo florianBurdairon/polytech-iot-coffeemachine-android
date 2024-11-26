@@ -7,6 +7,7 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
 import fr.polytech.coffeemachineapp.model.RequestLog
+import fr.polytech.coffeemachineapp.model.RequestLogRaw
 import fr.polytech.coffeemachineapp.repository.FirebaseRepository
 import fr.polytech.coffeemachineapp.utils.Constant.Companion.REQUEST_LOGS_PATH
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,12 +19,25 @@ class RequestLogViewModel(private val firebaseRepository: FirebaseRepository) : 
     private var _requestLogs = MutableStateFlow(listOf<RequestLog>())
     val requestLogs = _requestLogs.asStateFlow()
 
-    private val requestLogsListener = object : ValueEventListener {
+    private inner class RequestLogListener(private val requestLogs: MutableStateFlow<List<RequestLog>>, val mac: String) : ValueEventListener {
         override fun onDataChange(dataSnapshot: DataSnapshot) {
+            val logsList = mutableListOf<RequestLog>()
             dataSnapshot.children.forEach { deviceSnapshot ->
-                val requestLog = deviceSnapshot.getValue(RequestLog::class.java)
-                requestLog?.let { _requestLogs.update { requestLogs.value + it } }
+                val requestLog = deviceSnapshot.getValue(RequestLogRaw::class.java)
+                if (requestLog?.mac == mac) {
+                    logsList.add(
+                        RequestLog(
+                            requestLog.mac,
+                            requestLog.uid,
+                            requestLog.action,
+                            requestLog.status,
+                            requestLog.timestamp.toLong()
+                        )
+                    )
+                    requestLogs.update { logsList }
+                }
             }
+            Log.d("Firebase", "Request logs: ${requestLogs.value.size}")
         }
 
         override fun onCancelled(error: DatabaseError) {
@@ -31,26 +45,30 @@ class RequestLogViewModel(private val firebaseRepository: FirebaseRepository) : 
         }
     }
 
-    fun addRequestLogListener(uid: String) {
-        firebaseRepository.addListener("$REQUEST_LOGS_PATH/$uid", requestLogsListener)
+    private var listenerMap = mutableMapOf<String, ValueEventListener>()
+
+    fun addRequestLogListener(uid: String, mac: String) {
+        val requestLogsListener = RequestLogListener(_requestLogs, mac)
+        listenerMap[mac] = requestLogsListener
+        listenerMap[mac]?.let { firebaseRepository.addListener("$REQUEST_LOGS_PATH/$uid", it) }
     }
 
-    fun removeRequestLogListener(uid: String) {
-        firebaseRepository.removeListener("$REQUEST_LOGS_PATH/$uid", requestLogsListener)
+    fun removeRequestLogListener(uid: String, mac: String) {
+        listenerMap[mac]?.let { firebaseRepository.removeListener("$REQUEST_LOGS_PATH/$uid", it) }
     }
 
     fun addRequestLog(requestLog: RequestLog) {
         viewModelScope.launch {
             firebaseRepository.sendData(
                 requestLog,
-                "$REQUEST_LOGS_PATH/${requestLog.uid}/${requestLog.timeStamp}"
+                "$REQUEST_LOGS_PATH/${requestLog.uid}/${requestLog.timestamp}"
             )
         }
     }
 
     fun removeRequestLog(requestLog: RequestLog) {
         viewModelScope.launch {
-            firebaseRepository.removeData("$REQUEST_LOGS_PATH/${requestLog.uid}/${requestLog.timeStamp}")
+            firebaseRepository.removeData("$REQUEST_LOGS_PATH/${requestLog.uid}/${requestLog.timestamp}")
         }
     }
 }

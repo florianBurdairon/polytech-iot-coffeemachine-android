@@ -47,7 +47,7 @@ class RequestViewModel(private val firebaseRepository: FirebaseRepository) : Vie
                         else {
                             val nextRequestRaw = deviceSnapshot.getValue(RequestRaw::class.java)
                             val nextRequest = nextRequestRaw?.let { Request(it.mac, it.uid, it.action, it.status, it.timestamp.toLong()) }
-                            nextRequest?.let { _currentRequest.update { nextRequest } }
+                            nextRequest?.let { _nextRequest.update { nextRequest } }
                         }
                     }
                     "list" -> {

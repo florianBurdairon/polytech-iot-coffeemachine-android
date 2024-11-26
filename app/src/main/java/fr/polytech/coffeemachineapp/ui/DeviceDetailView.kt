@@ -41,6 +41,7 @@ import fr.polytech.coffeemachineapp.viewmodel.AuthState
 import fr.polytech.coffeemachineapp.viewmodel.AuthViewModel
 import fr.polytech.coffeemachineapp.viewmodel.DeviceViewModel
 import fr.polytech.coffeemachineapp.viewmodel.OwnershipViewModel
+import fr.polytech.coffeemachineapp.viewmodel.RequestLogViewModel
 import fr.polytech.coffeemachineapp.viewmodel.RequestViewModel
 import fr.polytech.coffeemachineapp.viewmodel.SensorViewModel
 import org.koin.androidx.compose.getViewModel
@@ -54,6 +55,7 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
     val sensorViewModel: SensorViewModel = getViewModel()
     val ownershipViewModel: OwnershipViewModel = getViewModel()
     val requestViewModel: RequestViewModel = getViewModel()
+    val requestLogViewModel: RequestLogViewModel = getViewModel()
 
     // Collect the state from the view models
     val authState by authViewModel.authState.collectAsState()
@@ -63,6 +65,7 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
     val requests by requestViewModel.requests.collectAsState()
     val currentRequest by requestViewModel.currentRequest.collectAsState()
     val nextRequest by requestViewModel.nextRequest.collectAsState()
+    val requestLogs by requestLogViewModel.requestLogs.collectAsState()
 
     val context = LocalContext.current
 
@@ -73,11 +76,14 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
         sensorViewModel.selectSensor(selectedDeviceMac)
         ownershipViewModel.selectOwner((authState as AuthState.Authenticated).user?.uid ?: "")
         requestViewModel.addRequestsListener(selectedDeviceMac)
+        requestLogViewModel.addRequestLogListener((authState as AuthState.Authenticated).user?.uid ?: "", selectedDeviceMac)
+
         onDispose {
             deviceViewModel.unselectDevice()
             sensorViewModel.unselectSensor()
             ownershipViewModel.unselectOwner()
             requestViewModel.removeRequestsListener(selectedDeviceMac)
+            requestLogViewModel.removeRequestLogListener((authState as AuthState.Authenticated).user?.uid ?: "", selectedDeviceMac)
         }
     }
 
@@ -272,7 +278,7 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
             }
         }
         // Show the requests list
-        RequestList(requests)
+        RequestList(currentRequest, nextRequest, requests, requestLogs)
     }
 }
 
