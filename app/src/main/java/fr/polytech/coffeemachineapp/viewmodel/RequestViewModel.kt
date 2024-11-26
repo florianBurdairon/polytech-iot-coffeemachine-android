@@ -25,7 +25,7 @@ class RequestViewModel(private val firebaseRepository: FirebaseRepository) : Vie
     private var _requests = MutableStateFlow(listOf<Request>())
     val requests : StateFlow<List<Request>> = _requests.asStateFlow()
 
-    val requestsListener = object : ValueEventListener {
+    private val requestsListener = object : ValueEventListener {
         override fun onDataChange(dataSnapshot: DataSnapshot) {
             dataSnapshot.children.forEach { deviceSnapshot ->
                 when (deviceSnapshot.key) {
