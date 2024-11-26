@@ -5,6 +5,7 @@ import fr.polytech.coffeemachineapp.viewmodel.BLEViewModel
 import fr.polytech.coffeemachineapp.viewmodel.DeviceViewModel
 import fr.polytech.coffeemachineapp.viewmodel.OwnershipViewModel
 import fr.polytech.coffeemachineapp.viewmodel.PermissionsViewModel
+import fr.polytech.coffeemachineapp.viewmodel.RequestLogViewModel
 import fr.polytech.coffeemachineapp.viewmodel.RequestViewModel
 import fr.polytech.coffeemachineapp.viewmodel.SensorViewModel
 import fr.polytech.coffeemachineapp.viewmodel.UserViewModel
@@ -20,4 +21,5 @@ val viewModelModule = module {
     viewModel{ UserViewModel(get()) }
     viewModel{ BLEViewModel(get(), get()) }
     viewModel{ RequestViewModel(get()) }
+    viewModel { RequestLogViewModel(get()) }
 }

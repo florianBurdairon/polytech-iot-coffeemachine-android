@@ -11,13 +11,13 @@ import fr.polytech.coffeemachineapp.model.Owner
 import fr.polytech.coffeemachineapp.model.Ownership
 import fr.polytech.coffeemachineapp.model.QRData
 import fr.polytech.coffeemachineapp.repository.FirebaseRepository
+import fr.polytech.coffeemachineapp.utils.Constant.Companion.OWNERSHIPS_PATH
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class OwnershipViewModel(private val firebaseRepository: FirebaseRepository) : ViewModel() {
-    private val ownershipPath = "ownership"
     private var _selectedOwner = MutableStateFlow<Owner?>(null)
     val selectedOwnerState: StateFlow<Owner?> = _selectedOwner
     private var _guests = MutableStateFlow<List<String>>(emptyList())
@@ -52,11 +52,11 @@ class OwnershipViewModel(private val firebaseRepository: FirebaseRepository) : V
             when {
                 _selectedOwner.value?.uid == uid -> { return@launch } // Do nothing if the sensor is already selected
                 _selectedOwner.value?.uid != uid -> {
-                    firebaseRepository.removeListener("$ownershipPath/${_selectedOwner.value?.uid}", ownerListener)
-                    firebaseRepository.addListener("$ownershipPath/$uid", ownerListener)
+                    firebaseRepository.removeListener("$OWNERSHIPS_PATH/${_selectedOwner.value?.uid}", ownerListener)
+                    firebaseRepository.addListener("$OWNERSHIPS_PATH/$uid", ownerListener)
                 }
                 else -> {
-                    firebaseRepository.addListener("$ownershipPath/$uid", ownerListener)
+                    firebaseRepository.addListener("$OWNERSHIPS_PATH/$uid", ownerListener)
                 }
             }
         }
@@ -64,7 +64,7 @@ class OwnershipViewModel(private val firebaseRepository: FirebaseRepository) : V
 
     fun unselectOwner() {
         viewModelScope.launch {
-            firebaseRepository.removeListener("$ownershipPath/${_selectedOwner.value?.uid}", ownerListener)
+            firebaseRepository.removeListener("$OWNERSHIPS_PATH/${_selectedOwner.value?.uid}", ownerListener)
             _selectedOwner.update { null }
         }
     }
@@ -79,22 +79,22 @@ class OwnershipViewModel(private val firebaseRepository: FirebaseRepository) : V
                 val stringListTypeIndicator: GenericTypeIndicator<List<String>> =
                     object : GenericTypeIndicator<List<String>>() {}
                 val guestList =
-                    firebaseRepository.getData("$ownershipPath/$owner/$mac/guests", stringListTypeIndicator)
+                    firebaseRepository.getData("$OWNERSHIPS_PATH/$owner/$mac/guests", stringListTypeIndicator)
                         ?.toMutableList() ?: mutableListOf()
                 if (!guestList.contains(guest)) {
                     guestList.add(guest)
-                    firebaseRepository.sendData(guestList, "$ownershipPath/$owner/$mac/guests")
+                    firebaseRepository.sendData(guestList, "$OWNERSHIPS_PATH/$owner/$mac/guests")
                 }
 
                 // Add device to the guest's list
                 val ownershipListTypeIndicator: GenericTypeIndicator<List<Ownership>> =
                     object : GenericTypeIndicator<List<Ownership>>() {}
                 val deviceList =
-                    firebaseRepository.getData("$ownershipPath/$guest", ownershipListTypeIndicator)
+                    firebaseRepository.getData("$OWNERSHIPS_PATH/$guest", ownershipListTypeIndicator)
                         ?.toMutableList() ?: mutableListOf()
                 val ownership = Ownership(null, mac, "guest")
                 if (!deviceList.contains(ownership)) {
-                    firebaseRepository.sendData(ownership, "$ownershipPath/$guest/$mac")
+                    firebaseRepository.sendData(ownership, "$OWNERSHIPS_PATH/$guest/$mac")
                 }
             }
         }
@@ -107,11 +107,11 @@ class OwnershipViewModel(private val firebaseRepository: FirebaseRepository) : V
                 val ownershipListTypeIndicator: GenericTypeIndicator<List<Ownership>> =
                     object : GenericTypeIndicator<List<Ownership>>() {}
                 val deviceList =
-                    firebaseRepository.getData("$ownershipPath/$owner", ownershipListTypeIndicator)
+                    firebaseRepository.getData("$OWNERSHIPS_PATH/$owner", ownershipListTypeIndicator)
                         ?.toMutableList() ?: mutableListOf()
                 val ownership = Ownership(null, mac, "owner")
                 if (!deviceList.contains(ownership)) {
-                    firebaseRepository.sendData(ownership, "$ownershipPath/$owner/$mac")
+                    firebaseRepository.sendData(ownership, "$OWNERSHIPS_PATH/$owner/$mac")
                 }
             }
         }
@@ -124,22 +124,22 @@ class OwnershipViewModel(private val firebaseRepository: FirebaseRepository) : V
             val stringListTypeIndicator: GenericTypeIndicator<List<String>> =
                 object : GenericTypeIndicator<List<String>>() {}
             val guestList =
-                firebaseRepository.getData("$ownershipPath/$owner/$mac/guests", stringListTypeIndicator)
+                firebaseRepository.getData("$OWNERSHIPS_PATH/$owner/$mac/guests", stringListTypeIndicator)
                     ?.toMutableList() ?: mutableListOf()
             if (guestList.contains(guest)) {
                 guestList.remove(guest)
-                firebaseRepository.sendData(guestList, "$ownershipPath/$owner/$mac/guests")
+                firebaseRepository.sendData(guestList, "$OWNERSHIPS_PATH/$owner/$mac/guests")
             }
 
             // Remove device from the guest's list
             val ownershipListTypeIndicator: GenericTypeIndicator<List<Ownership>> =
                 object : GenericTypeIndicator<List<Ownership>>() {}
             val deviceList =
-                firebaseRepository.getData("$ownershipPath/$guest", ownershipListTypeIndicator)
+                firebaseRepository.getData("$OWNERSHIPS_PATH/$guest", ownershipListTypeIndicator)
                     ?.toMutableList() ?: mutableListOf()
             val ownership = Ownership(null, mac, "guest")
             if (deviceList.contains(ownership)) {
-                firebaseRepository.removeData("$ownershipPath/$guest/$mac")
+                firebaseRepository.removeData("$OWNERSHIPS_PATH/$guest/$mac")
             }
         }
     }
@@ -171,14 +171,14 @@ class OwnershipViewModel(private val firebaseRepository: FirebaseRepository) : V
     fun getGuestList(mac: String, owner: String) {
         viewModelScope.launch {
             Log.d("Firebase", "Adding listener for guests")
-            firebaseRepository.addListener("$ownershipPath/$owner/$mac/guests", guestsListener)
+            firebaseRepository.addListener("$OWNERSHIPS_PATH/$owner/$mac/guests", guestsListener)
         }
     }
 
     fun removeGuestListListener(mac: String, owner: String) {
         viewModelScope.launch {
             Log.d("Firebase", "Removing listener for guests")
-            firebaseRepository.removeListener("$ownershipPath/$owner/$mac/guests", guestsListener)
+            firebaseRepository.removeListener("$OWNERSHIPS_PATH/$owner/$mac/guests", guestsListener)
             _guests.update { emptyList() }
         }
     }

@@ -9,13 +9,13 @@ import com.google.firebase.database.ValueEventListener
 import fr.polytech.coffeemachineapp.model.Sensor
 import fr.polytech.coffeemachineapp.model.SensorData
 import fr.polytech.coffeemachineapp.repository.FirebaseRepository
+import fr.polytech.coffeemachineapp.utils.Constant.Companion.SENSORS_PATH
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class SensorViewModel(private val firebaseRepository: FirebaseRepository) : ViewModel() {
-    private val sensorPath = "sensors"
     private var _selectedSensor = MutableStateFlow<Sensor?>(null)
     val selectedSensorState: StateFlow<Sensor?> = _selectedSensor
 
@@ -46,11 +46,11 @@ class SensorViewModel(private val firebaseRepository: FirebaseRepository) : View
             when {
                 _selectedSensor.value?.mac == mac -> { return@launch } // Do nothing if the sensor is already selected
                 _selectedSensor.value?.mac != mac -> {
-                    firebaseRepository.removeListener("$sensorPath/${_selectedSensor.value?.mac}", sensorListener)
-                    firebaseRepository.addListener("$sensorPath/$mac", sensorListener)
+                    firebaseRepository.removeListener("$SENSORS_PATH/${_selectedSensor.value?.mac}", sensorListener)
+                    firebaseRepository.addListener("$SENSORS_PATH/$mac", sensorListener)
                 }
                 else -> {
-                    firebaseRepository.addListener("$sensorPath/$mac", sensorListener)
+                    firebaseRepository.addListener("$SENSORS_PATH/$mac", sensorListener)
                 }
             }
         }
@@ -58,7 +58,7 @@ class SensorViewModel(private val firebaseRepository: FirebaseRepository) : View
 
     fun unselectSensor() {
         viewModelScope.launch {
-            firebaseRepository.removeListener("$sensorPath/${_selectedSensor.value?.mac}", sensorListener)
+            firebaseRepository.removeListener("$SENSORS_PATH/${_selectedSensor.value?.mac}", sensorListener)
             _selectedSensor.update { null }
         }
     }

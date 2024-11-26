@@ -1,6 +1,6 @@
 package fr.polytech.coffeemachineapp.model
 
-data class Log (
+data class RequestLog (
     val mac: String,
     val uid: String,
     val timeStamp: Long,

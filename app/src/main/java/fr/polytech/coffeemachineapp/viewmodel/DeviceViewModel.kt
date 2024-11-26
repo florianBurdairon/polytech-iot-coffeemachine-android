@@ -8,13 +8,13 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
 import fr.polytech.coffeemachineapp.model.Device
 import fr.polytech.coffeemachineapp.repository.FirebaseRepository
+import fr.polytech.coffeemachineapp.utils.Constant.Companion.DEVICES_PATH
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class DeviceViewModel(private val firebaseRepository: FirebaseRepository) : ViewModel() {
-    private val devicesPath = "devices"
     private var _devices = MutableStateFlow(listOf<Device>())
     private var _selectedDevice = MutableStateFlow<Device?>(null)
     val devices : StateFlow<List<Device>> = _devices
@@ -57,13 +57,13 @@ class DeviceViewModel(private val firebaseRepository: FirebaseRepository) : View
 
     fun getDevices() {
         viewModelScope.launch {
-            firebaseRepository.addListener(devicesPath, deviceListListener)
+            firebaseRepository.addListener(DEVICES_PATH, deviceListListener)
         }
     }
 
     fun removeDevices() {
         viewModelScope.launch {
-            firebaseRepository.removeListener(devicesPath, deviceListListener)
+            firebaseRepository.removeListener(DEVICES_PATH, deviceListListener)
         }
     }
 
@@ -72,11 +72,11 @@ class DeviceViewModel(private val firebaseRepository: FirebaseRepository) : View
             when {
                 _selectedDevice.value?.mac == mac -> { return@launch } // Do nothing if the device is already selected
                 _selectedDevice.value?.mac != mac -> {
-                    firebaseRepository.removeListener("$devicesPath/${_selectedDevice.value?.mac}", deviceListener)
-                    firebaseRepository.addListener("$devicesPath/$mac", deviceListener)
+                    firebaseRepository.removeListener("$DEVICES_PATH/${_selectedDevice.value?.mac}", deviceListener)
+                    firebaseRepository.addListener("$DEVICES_PATH/$mac", deviceListener)
                 }
                 else -> {
-                    firebaseRepository.addListener("$devicesPath/$mac", deviceListener)
+                    firebaseRepository.addListener("$DEVICES_PATH/$mac", deviceListener)
                 }
             }
         }
@@ -84,14 +84,14 @@ class DeviceViewModel(private val firebaseRepository: FirebaseRepository) : View
 
     fun unselectDevice() {
         viewModelScope.launch {
-            firebaseRepository.removeListener("$devicesPath/${_selectedDevice.value?.mac}", deviceListener)
+            firebaseRepository.removeListener("$DEVICES_PATH/${_selectedDevice.value?.mac}", deviceListener)
             _selectedDevice.update { null }
         }
     }
 
     fun addDevice(device: Device) {
         viewModelScope.launch {
-            firebaseRepository.sendData(device,"$devicesPath/${device.mac}")
+            firebaseRepository.sendData(device,"$DEVICES_PATH/${device.mac}")
         }
     }
 }
