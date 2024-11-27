@@ -10,6 +10,7 @@ import fr.polytech.coffeemachineapp.model.Request
 import fr.polytech.coffeemachineapp.model.RequestRaw
 import fr.polytech.coffeemachineapp.repository.FirebaseRepository
 import fr.polytech.coffeemachineapp.utils.Constant.Companion.REQUESTS_PATH
+import fr.polytech.coffeemachineapp.utils.RequestStatus
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -35,7 +36,9 @@ class RequestViewModel(private val firebaseRepository: FirebaseRepository) : Vie
                         }
                         else {
                             val currentRequestRaw = deviceSnapshot.getValue(RequestRaw::class.java)
-                            val currentRequest = currentRequestRaw?.let { Request(it.mac, it.uid, it.action, it.status, it.timestamp.toLong()) }
+                            val currentRequest = currentRequestRaw?.let { Request(it.mac, it.uid, it.action, RequestStatus.valueOf(it.status),
+                                it.timestamp
+                            ) }
                             currentRequest?.let { _currentRequest.update { currentRequest } }
                         }
                     }
@@ -46,14 +49,19 @@ class RequestViewModel(private val firebaseRepository: FirebaseRepository) : Vie
                         }
                         else {
                             val nextRequestRaw = deviceSnapshot.getValue(RequestRaw::class.java)
-                            val nextRequest = nextRequestRaw?.let { Request(it.mac, it.uid, it.action, it.status, it.timestamp.toLong()) }
+                            val nextRequest = nextRequestRaw?.let { Request(it.mac, it.uid, it.action, RequestStatus.valueOf(it.status),
+                                it.timestamp
+                            ) }
                             nextRequest?.let { _nextRequest.update { nextRequest } }
                         }
                     }
                     "list" -> {
                         val requestList = mutableListOf<Request>()
                         deviceSnapshot.children.forEach { requestSnapshot ->
-                            val request = requestSnapshot.getValue(Request::class.java)
+                            val requestRaw = requestSnapshot.getValue(RequestRaw::class.java)
+                            val request = requestRaw?.let { Request(it.mac, it.uid, it.action, RequestStatus.valueOf(it.status),
+                                it.timestamp
+                            ) }
                             request?.let { requestList.add(it) }
                         }
                         requestList.sortBy { it.timestamp }

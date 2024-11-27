@@ -23,6 +23,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import fr.polytech.coffeemachineapp.R
 import fr.polytech.coffeemachineapp.model.Device
+import fr.polytech.coffeemachineapp.utils.DeviceStatus
 
 @Composable
 fun DeviceList(devices: List<Device>, onDeviceClick: (Device) -> Unit) {
@@ -57,26 +58,20 @@ fun DeviceItem(device: Device, onDeviceClick: (Device) -> Unit) {
 }
 
 @Composable
-fun DeviceConnectivityStatusIcon(status: String, modifier: Modifier = Modifier) {
+fun DeviceConnectivityStatusIcon(status: DeviceStatus, modifier: Modifier = Modifier) {
     when (status) {
-        "online" -> Icon(
+        DeviceStatus.ONLINE -> Icon(
             painter = painterResource(id = R.drawable.wifi_24dp),
             contentDescription = "device status : $status",
             modifier = modifier,
             tint = colorScheme.onPrimaryContainer
         )
-        "offline" -> Icon(
+        DeviceStatus.OFFLINE -> Icon(
             painter = painterResource(id = R.drawable.wifi_off_24dp),
             contentDescription = "device status : $status",
             modifier = modifier,
             tint = colorScheme.onPrimaryContainer
         )
-        "busy" -> Icon(
-            painter = painterResource(id = R.drawable.wifi_24dp),
-            contentDescription = "device status : $status",
-            modifier = modifier,
-            tint = colorScheme.onPrimaryContainer
-        )
         else -> {
             Log.d("DeviceStatusIcon", "Unknown status: $status")
             CircularProgressIndicator(
@@ -84,35 +79,5 @@ fun DeviceConnectivityStatusIcon(status: String, modifier: Modifier = Modifier) 
                 modifier = modifier.size(20.dp)
             )
         }
-    }
-}
-
-@Composable
-fun DeviceStatusIcon(status: String, modifier: Modifier = Modifier) {
-    when (status) {
-        "online" -> Icon(
-            painter = painterResource(id = R.drawable.check_circle_24dp),
-            contentDescription = "device status : $status",
-            modifier = modifier,
-            tint = colorScheme.onPrimaryContainer
-        )
-        "offline" -> Icon(
-            painter = painterResource(id = R.drawable.cancel_24dp),
-            contentDescription = "device status : $status",
-            modifier = modifier,
-            tint = colorScheme.onPrimaryContainer
-        )
-        "busy" -> CircularProgressIndicator(
-            color = colorScheme.onPrimaryContainer,
-            modifier = modifier.size(20.dp)
-        )
-        else -> {
-            Log.d("DeviceStatusIcon", "Unknown status: $status")
-            CircularProgressIndicator(
-                color = colorScheme.onPrimaryContainer,
-                modifier = modifier.size(20.dp)
-            )
-        }
-
     }
 }

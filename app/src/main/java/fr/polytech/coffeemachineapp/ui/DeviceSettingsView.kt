@@ -92,15 +92,22 @@ fun DeviceSettingsView(navigator: DestinationsNavigator, device: Device) {
                     device.mac
                 )
                 val qrDataJson = Gson().toJson(qrData)
-                QrCodeView(
-                    data = qrDataJson,
-                    modifier = Modifier.size(250.dp).padding(16.dp),
-                    colors = QrCodeColors(
-                        background = MaterialTheme.colorScheme.primaryContainer,
-                        foreground = MaterialTheme.colorScheme.primary,
-                    ),
-                    dotShape = DotShape.Circle
-                )
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    QrCodeView(
+                        data = qrDataJson,
+                        modifier = Modifier
+                            .size(250.dp)
+                            .padding(16.dp),
+                        colors = QrCodeColors(
+                            background = MaterialTheme.colorScheme.primaryContainer,
+                            foreground = MaterialTheme.colorScheme.primary,
+                        ),
+                        dotShape = DotShape.Circle
+                    )
+                }
             },
             confirmButton = {
                 Button(onClick = { showDialog = false }) {
@@ -139,7 +146,9 @@ fun DeviceSettingsView(navigator: DestinationsNavigator, device: Device) {
             guests = guestUsers,
             header = {
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(

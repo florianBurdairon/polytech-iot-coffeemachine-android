@@ -10,6 +10,7 @@ import fr.polytech.coffeemachineapp.model.RequestLog
 import fr.polytech.coffeemachineapp.model.RequestLogRaw
 import fr.polytech.coffeemachineapp.repository.FirebaseRepository
 import fr.polytech.coffeemachineapp.utils.Constant.Companion.REQUEST_LOGS_PATH
+import fr.polytech.coffeemachineapp.utils.LogStatus
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -30,8 +31,8 @@ class RequestLogViewModel(private val firebaseRepository: FirebaseRepository) : 
                             requestLog.mac,
                             requestLog.uid,
                             requestLog.action,
-                            requestLog.status,
-                            requestLog.timestamp.toLong()
+                            LogStatus.valueOf(requestLog.status),
+                            requestLog.timestamp
                         )
                     )
                     requestLogs.update { logsList }

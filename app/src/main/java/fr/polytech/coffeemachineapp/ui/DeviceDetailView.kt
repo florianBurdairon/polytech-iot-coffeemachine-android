@@ -33,10 +33,12 @@ import androidx.compose.ui.unit.dp
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import fr.polytech.coffeemachineapp.R
-import fr.polytech.coffeemachineapp.ui.components.DeviceStatusIcon
 import fr.polytech.coffeemachineapp.ui.components.RequestList
+import fr.polytech.coffeemachineapp.ui.components.RequestStatusIcon
 import fr.polytech.coffeemachineapp.ui.destinations.DeviceSettingsViewDestination
 import fr.polytech.coffeemachineapp.ui.destinations.HomeViewDestination
+import fr.polytech.coffeemachineapp.utils.DeviceStatus
+import fr.polytech.coffeemachineapp.utils.RequestStatus
 import fr.polytech.coffeemachineapp.viewmodel.AuthState
 import fr.polytech.coffeemachineapp.viewmodel.AuthViewModel
 import fr.polytech.coffeemachineapp.viewmodel.DeviceViewModel
@@ -170,7 +172,7 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
-                    DeviceStatusIcon(selectedDevice?.status ?: "offline")
+                    RequestStatusIcon(currentRequest?.status ?: RequestStatus.WAITING)
                 }
                 VerticalDivider(
                     modifier = Modifier
@@ -235,7 +237,7 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
                 shape = MaterialTheme.shapes.medium,
                 enabled = (selectedSensor?.data?.waterlevel ?: 0.0) > 0.25
                         && selectedSensor?.data?.presence == true
-                        && selectedDevice?.status == "online",
+                        && selectedDevice?.status == DeviceStatus.ONLINE,
                 onClick = {
                     Toast.makeText(context, "1 Coffee requested", Toast.LENGTH_SHORT).show()
                 }
@@ -257,7 +259,7 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
                 shape = MaterialTheme.shapes.medium,
                 enabled = (selectedSensor?.data?.waterlevel ?: 0.0) > 0.25
                         && selectedSensor?.data?.presence == true
-                        && selectedDevice?.status == "online",
+                        && selectedDevice?.status == DeviceStatus.ONLINE,
                 onClick = {
                     Toast.makeText(context, "2 Coffees requested", Toast.LENGTH_SHORT).show()
                 }
