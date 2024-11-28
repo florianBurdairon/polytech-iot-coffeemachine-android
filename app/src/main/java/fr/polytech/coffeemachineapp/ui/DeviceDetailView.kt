@@ -243,7 +243,7 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
                     val request = Request(
                         mac = selectedDeviceMac,
                         uid = (authState as AuthState.Authenticated).user?.uid ?: "",
-                        timestamp = System.currentTimeMillis(),
+                        timestamp = System.currentTimeMillis()/1000,
                         status = RequestStatus.WAITING,
                         action = "1CUP"
                     )
@@ -272,7 +272,7 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
                     val request = Request(
                         mac = selectedDeviceMac,
                         uid = (authState as AuthState.Authenticated).user?.uid ?: "",
-                        timestamp = System.currentTimeMillis(),
+                        timestamp = System.currentTimeMillis()/1000,
                         status = RequestStatus.WAITING,
                         action = "2CUP"
                     )
