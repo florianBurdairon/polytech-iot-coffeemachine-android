@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import fr.polytech.coffeemachineapp.R
+import fr.polytech.coffeemachineapp.model.Request
 import fr.polytech.coffeemachineapp.ui.components.RequestList
 import fr.polytech.coffeemachineapp.ui.components.RequestStatusIcon
 import fr.polytech.coffeemachineapp.ui.destinations.DeviceSettingsViewDestination
@@ -141,7 +142,7 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 8.dp)
                 .background(
                     MaterialTheme.colorScheme.primaryContainer,
                     shape = MaterialTheme.shapes.medium
@@ -172,7 +173,7 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
-                    RequestStatusIcon(currentRequest?.status ?: RequestStatus.WAITING)
+                    RequestStatusIcon(currentRequest?.status ?: RequestStatus.WAITING, color = MaterialTheme.colorScheme.onPrimaryContainer)
                 }
                 VerticalDivider(
                     modifier = Modifier
@@ -227,7 +228,7 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
                 modifier = Modifier
                     .height(100.dp)
                     .weight(0.5f)
-                    .padding(start = 16.dp, top = 16.dp, end = 8.dp, bottom = 16.dp),
+                    .padding(start = 16.dp, top = 8.dp, end = 8.dp, bottom = 16.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -239,17 +240,24 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
                         && selectedSensor?.data?.presence == true
                         && selectedDevice?.status == DeviceStatus.ONLINE,
                 onClick = {
+                    val request = Request(
+                        mac = selectedDeviceMac,
+                        uid = (authState as AuthState.Authenticated).user?.uid ?: "",
+                        timestamp = System.currentTimeMillis(),
+                        status = RequestStatus.WAITING,
+                        action = "1CUP"
+                    )
                     Toast.makeText(context, "1 Coffee requested", Toast.LENGTH_SHORT).show()
+                    requestViewModel.addRequest(request)
                 }
             ) {
-                // Text(text = "1 Coffee", style = MaterialTheme.typography.titleLarge)
                 Icon(painter = painterResource(id = R.drawable.local_cafe), contentDescription = "1 Coffee", tint = MaterialTheme.colorScheme.onPrimaryContainer)
             }
             Button(
                 modifier = Modifier
                     .height(100.dp)
                     .weight(0.5f)
-                    .padding(start = 8.dp, top = 16.dp, end = 16.dp, bottom = 16.dp),
+                    .padding(start = 8.dp, top = 8.dp, end = 8.dp, bottom = 16.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -261,10 +269,17 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
                         && selectedSensor?.data?.presence == true
                         && selectedDevice?.status == DeviceStatus.ONLINE,
                 onClick = {
+                    val request = Request(
+                        mac = selectedDeviceMac,
+                        uid = (authState as AuthState.Authenticated).user?.uid ?: "",
+                        timestamp = System.currentTimeMillis(),
+                        status = RequestStatus.WAITING,
+                        action = "2CUP"
+                    )
                     Toast.makeText(context, "2 Coffees requested", Toast.LENGTH_SHORT).show()
+                    requestViewModel.addRequest(request)
                 }
             ) {
-                // Text(text = "2 Coffees", style = MaterialTheme.typography.titleLarge)
                 Row {
                     Icon(
                         painter = painterResource(id = R.drawable.local_cafe),
@@ -278,9 +293,29 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
                     )
                 }
             }
+            Button(
+                modifier = Modifier
+                    .height(100.dp)
+                    .weight(0.5f)
+                    .padding(start = 8.dp, top = 8.dp, end = 16.dp, bottom = 16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    disabledContainerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                    disabledContentColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f)
+                ),
+                shape = MaterialTheme.shapes.medium,
+                onClick = {
+                    Toast.makeText(context, "Schedule request", Toast.LENGTH_SHORT).show()
+                }
+            ) {
+                Icon(painter = painterResource(id = R.drawable.schedule_24dp), contentDescription = "Schedule", tint = MaterialTheme.colorScheme.onPrimaryContainer)
+            }
         }
         // Show the requests list
-        RequestList(currentRequest, nextRequest, requests, requestLogs)
+        RequestList(currentRequest, nextRequest, requests, requestLogs) { request ->
+            requestViewModel.removeRequest(request)
+        }
     }
 }
 

@@ -91,24 +91,37 @@ class RequestViewModel(private val firebaseRepository: FirebaseRepository) : Vie
         }
     }
 
-    fun setCurrentRequest(request: Request) {
+    private fun setCurrentRequest(request: Request) {
         viewModelScope.launch {
             firebaseRepository.sendData(request, "$REQUESTS_PATH/${request.mac}/current")
             _currentRequest.update { request }
         }
     }
 
-    fun addRequest(request: Request) {
-        viewModelScope.launch {
-            // If new request is before next request, replace next request  by new request and add the old next request to the list of requests
-            if (nextRequest.value?.let { request.timestamp < it.timestamp } != false) {
-                val oldNextRequest = nextRequest.value
-                firebaseRepository.sendData(request, "$REQUESTS_PATH/${request.mac}/next")
-                oldNextRequest?.let { firebaseRepository.sendData(it, "$REQUESTS_PATH/${request.mac}/list/${it.timestamp}") }
-            }
-            // If new request is after next request, add it to the list of requests
-            else {
-                firebaseRepository.sendData(request, "$REQUESTS_PATH/${request.mac}/list/${request.timestamp}")
+    fun addRequest(request: Request, isCurrent: Boolean = false) {
+        if (isCurrent && currentRequest.value == null) {
+            setCurrentRequest(request.copy(status = RequestStatus.INITIALIZING))
+        }
+        else {
+            viewModelScope.launch {
+                // If new request is before next request, replace next request  by new request and add the old next request to the list of requests
+                if (nextRequest.value?.let { request.timestamp < it.timestamp } != false) {
+                    val oldNextRequest = nextRequest.value
+                    firebaseRepository.sendData(request, "$REQUESTS_PATH/${request.mac}/next")
+                    oldNextRequest?.let {
+                        firebaseRepository.sendData(
+                            it,
+                            "$REQUESTS_PATH/${request.mac}/list/${it.timestamp}"
+                        )
+                    }
+                }
+                // If new request is after next request, add it to the list of requests
+                else {
+                    firebaseRepository.sendData(
+                        request,
+                        "$REQUESTS_PATH/${request.mac}/list/${request.timestamp}"
+                    )
+                }
             }
         }
     }
@@ -119,6 +132,7 @@ class RequestViewModel(private val firebaseRepository: FirebaseRepository) : Vie
                 val next = requests.value.minByOrNull { it.timestamp }
                 next?.let { firebaseRepository.sendData(it, "$REQUESTS_PATH/${request.mac}/next") } ?:
                     firebaseRepository.sendData("null", "$REQUESTS_PATH/${request.mac}/next")
+                next?.let { firebaseRepository.removeData("$REQUESTS_PATH/${request.mac}/list/${it.timestamp}") }
             }
             else {
                 firebaseRepository.removeData("$REQUESTS_PATH/${request.mac}/list/${request.timestamp}")
