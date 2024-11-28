@@ -24,6 +24,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -36,6 +37,7 @@ import fr.polytech.coffeemachineapp.R
 import fr.polytech.coffeemachineapp.model.Request
 import fr.polytech.coffeemachineapp.ui.components.RequestList
 import fr.polytech.coffeemachineapp.ui.components.RequestStatusIcon
+import fr.polytech.coffeemachineapp.ui.components.ScheduleRequestDialog
 import fr.polytech.coffeemachineapp.ui.destinations.DeviceSettingsViewDestination
 import fr.polytech.coffeemachineapp.ui.destinations.HomeViewDestination
 import fr.polytech.coffeemachineapp.utils.DeviceStatus
@@ -73,6 +75,7 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
     val context = LocalContext.current
 
     val selectedDeviceMac by rememberSaveable { mutableStateOf(mac) }
+    var showDialog by rememberSaveable { mutableStateOf(false) }
 
     DisposableEffect(Unit) {
         deviceViewModel.selectDevice(selectedDeviceMac)
@@ -95,6 +98,18 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
         // If not, navigate back to the home view
         navigator.popBackStack()
     }
+
+    //Show dialog to schedule request
+    ScheduleRequestDialog(
+        showDialog = showDialog,
+        device = selectedDevice,
+        uid = (authState as AuthState.Authenticated).user?.uid,
+        onScheduleRequest = { request ->
+            requestViewModel.addRequest(request)
+            showDialog = false
+        },
+        onDismiss = { showDialog = false }
+    )
 
     // Show the device details view
     Column {
@@ -307,6 +322,7 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
                 shape = MaterialTheme.shapes.medium,
                 onClick = {
                     Toast.makeText(context, "Schedule request", Toast.LENGTH_SHORT).show()
+                    showDialog = true
                 }
             ) {
                 Icon(painter = painterResource(id = R.drawable.schedule_24dp), contentDescription = "Schedule", tint = MaterialTheme.colorScheme.onPrimaryContainer)
