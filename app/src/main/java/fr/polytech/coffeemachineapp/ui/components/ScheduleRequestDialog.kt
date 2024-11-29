@@ -36,7 +36,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import fr.polytech.coffeemachineapp.R
 import fr.polytech.coffeemachineapp.model.Device
 import fr.polytech.coffeemachineapp.model.Request
 import fr.polytech.coffeemachineapp.utils.RequestStatus
@@ -207,8 +209,10 @@ fun ActionSelector(defaultAction: String = "1CUP", onActionSelected: (String) ->
                 onActionSelected("1CUP")
             }
         ) {
-            Text(text = "1 Cup",
-                color = if (selectedAction == "1CUP")
+            Icon(
+                painter = painterResource(id = R.drawable.local_cafe),
+                contentDescription = "1 Coffee",
+                tint = if (selectedAction == "1CUP")
                     MaterialTheme.colorScheme.onPrimaryContainer
                 else
                     MaterialTheme.colorScheme.onSecondaryContainer
@@ -230,12 +234,24 @@ fun ActionSelector(defaultAction: String = "1CUP", onActionSelected: (String) ->
                 onActionSelected("2CUP")
             }
         ) {
-            Text(text = "2 Cups",
-                color = if (selectedAction == "2CUP")
-                    MaterialTheme.colorScheme.onPrimaryContainer
-                else
-                    MaterialTheme.colorScheme.onSecondaryContainer
-            )
+            Row {
+                Icon(
+                    painter = painterResource(id = R.drawable.local_cafe),
+                    contentDescription = "2 Coffees",
+                    tint = if (selectedAction == "2CUP")
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    else
+                        MaterialTheme.colorScheme.onSecondaryContainer
+                )
+                Icon(
+                    painter = painterResource(id = R.drawable.local_cafe),
+                    contentDescription = "2 Coffees",
+                    tint = if (selectedAction == "2CUP")
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    else
+                        MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            }
         }
     }
 }
