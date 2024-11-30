@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -26,11 +28,30 @@ import fr.polytech.coffeemachineapp.model.Device
 import fr.polytech.coffeemachineapp.utils.DeviceStatus
 
 @Composable
-fun DeviceList(devices: List<Device>, onDeviceClick: (Device) -> Unit) {
+fun DeviceList(devices: List<Device>, onRefresh: () -> Unit, onDeviceClick: (Device) -> Unit) {
     LazyColumn {
         item {
             // Implement the UI for the header
-            Text(text = "List of devices", style = MaterialTheme.typography.headlineLarge, modifier = Modifier.padding(top = 16.dp, bottom = 16.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "List of devices",
+                    style = MaterialTheme.typography.headlineLarge,
+                    modifier = Modifier.padding(top = 16.dp, bottom = 16.dp)
+                )
+                Icon(
+                    imageVector = Icons.Rounded.Refresh,
+                    contentDescription = "Refresh",
+                    tint = colorScheme.onBackground,
+                    modifier = Modifier.clickable {
+                        // Refresh the device details
+                        Log.d("DeviceList", "Refreshing devices details")
+                        onRefresh()
+                    }
+                )
+            }
         }
         items(devices.size) { deviceIndex ->
             DeviceItem(device = devices[deviceIndex], onDeviceClick = onDeviceClick)

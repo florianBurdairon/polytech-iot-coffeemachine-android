@@ -35,6 +35,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import com.google.gson.Gson
@@ -55,6 +59,7 @@ import fr.polytech.coffeemachineapp.viewmodel.DeviceViewModel
 import fr.polytech.coffeemachineapp.viewmodel.OwnershipViewModel
 import fr.polytech.coffeemachineapp.viewmodel.PermissionsViewModel
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.getViewModel
 
@@ -84,6 +89,19 @@ fun HomeView(navigator: DestinationsNavigator, snackbarHostState: SnackbarHostSt
 
     // Barcode scanner instance
     val barcodeScanner = BarcodeScanner(context)
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(lifecycleOwner) {
+        lifecycleOwner.lifecycleScope.launch {
+            lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                while (authState is AuthState.Authenticated) {
+                    Log.d("Lifecycle", "Refreshing connectivity status for devices in list")
+                    deviceViewModel.checkIsOffline(devices)
+                    delay(180000)
+                }
+            }
+        }
+    }
 
     // Permission launchers
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
@@ -272,7 +290,13 @@ fun HomeView(navigator: DestinationsNavigator, snackbarHostState: SnackbarHostSt
         when (authState) {
             is AuthState.Authenticated -> {
                 Column (modifier = Modifier.fillMaxSize().padding(16.dp)) {
-                    DeviceList(devices = ownedDevices) {
+                    DeviceList(
+                        devices = ownedDevices,
+                        onRefresh = {
+                            // Refresh the device list
+                            deviceViewModel.checkIsOffline(devices)
+                        }
+                    ) {
                         // Handle device click
                         navigator.navigate(DeviceDetailViewDestination(it.mac))
                     }

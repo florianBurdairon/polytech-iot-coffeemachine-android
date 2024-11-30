@@ -9,6 +9,8 @@ import com.google.firebase.database.ValueEventListener
 import fr.polytech.coffeemachineapp.model.Device
 import fr.polytech.coffeemachineapp.repository.FirebaseRepository
 import fr.polytech.coffeemachineapp.utils.Constant.Companion.DEVICES_PATH
+import fr.polytech.coffeemachineapp.utils.DateUtils
+import fr.polytech.coffeemachineapp.utils.DeviceStatus
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -26,6 +28,10 @@ class DeviceViewModel(private val firebaseRepository: FirebaseRepository) : View
             dataSnapshot.children.forEach { deviceSnapshot ->
                 try {
                     val device = deviceSnapshot.getValue(Device::class.java)
+                    // If the device have not been online for more than 3 minutes, then change its status to OFFLINE
+                    if (device != null && device.status != DeviceStatus.OFFLINE && DateUtils.isOver(device.lastOnline, 180)) {
+                        setDeviceOffline(device)
+                    }
                     device?.let { deviceList.add(it) }
                 }
                 catch (e: Exception) {
@@ -44,6 +50,10 @@ class DeviceViewModel(private val firebaseRepository: FirebaseRepository) : View
     private val deviceListener = object : ValueEventListener {
         override fun onDataChange(dataSnapshot: DataSnapshot) {
             val device = dataSnapshot.getValue(Device::class.java)
+            // If the device have not been online for more than 3 minutes, then change its status to OFFLINE
+            if (device != null && device.status != DeviceStatus.OFFLINE && DateUtils.isOver(device.lastOnline, 180)) {
+                setDeviceOffline(device)
+            }
             device?.let {
                 _selectedDevice.update { device }
                 Log.d("Firebase", "Device: ${_selectedDevice.value}")
@@ -92,6 +102,25 @@ class DeviceViewModel(private val firebaseRepository: FirebaseRepository) : View
     fun addDevice(device: Device) {
         viewModelScope.launch {
             firebaseRepository.sendData(device,"$DEVICES_PATH/${device.mac}")
+        }
+    }
+
+    fun setDeviceOffline(device: Device) {
+        viewModelScope.launch {
+            firebaseRepository.sendData(device.copy(status = DeviceStatus.OFFLINE), "$DEVICES_PATH/${device.mac}")
+        }
+    }
+
+    fun checkIsOffline(device: Device) {
+        // If the device have not been online for more than 3 minutes, then change its status to OFFLINE
+        if (device.status != DeviceStatus.OFFLINE && DateUtils.isOver(device.lastOnline, 180)) {
+            setDeviceOffline(device)
+        }
+    }
+
+    fun checkIsOffline(devices: List<Device>) {
+        for (device in devices) {
+            checkIsOffline(device)
         }
     }
 }

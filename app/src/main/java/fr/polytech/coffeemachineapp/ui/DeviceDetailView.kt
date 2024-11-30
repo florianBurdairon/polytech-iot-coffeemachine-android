@@ -1,6 +1,6 @@
 package fr.polytech.coffeemachineapp.ui
 
-import android.widget.Toast
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -10,16 +10,20 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
+import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,14 +31,18 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import fr.polytech.coffeemachineapp.R
 import fr.polytech.coffeemachineapp.model.Request
+import fr.polytech.coffeemachineapp.ui.components.DeviceConnectivityStatusIcon
 import fr.polytech.coffeemachineapp.ui.components.RequestList
 import fr.polytech.coffeemachineapp.ui.components.RequestStatusIcon
 import fr.polytech.coffeemachineapp.ui.components.ScheduleRequestDialog
@@ -49,8 +57,11 @@ import fr.polytech.coffeemachineapp.viewmodel.OwnershipViewModel
 import fr.polytech.coffeemachineapp.viewmodel.RequestLogViewModel
 import fr.polytech.coffeemachineapp.viewmodel.RequestViewModel
 import fr.polytech.coffeemachineapp.viewmodel.SensorViewModel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.getViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Destination
 @Composable
 fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
@@ -72,8 +83,6 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
     val nextRequest by requestViewModel.nextRequest.collectAsState()
     val requestLogs by requestLogViewModel.requestLogs.collectAsState()
 
-    val context = LocalContext.current
-
     val selectedDeviceMac by rememberSaveable { mutableStateOf(mac) }
     var showDialog by rememberSaveable { mutableStateOf(false) }
 
@@ -90,6 +99,19 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
             ownershipViewModel.unselectOwner()
             requestViewModel.removeRequestsListener(selectedDeviceMac)
             requestLogViewModel.removeRequestLogListener((authState as AuthState.Authenticated).user?.uid ?: "", selectedDeviceMac)
+        }
+    }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(lifecycleOwner) {
+        lifecycleOwner.lifecycleScope.launch {
+            lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                while (authState is AuthState.Authenticated) {
+                    Log.d("Lifecycle", "Refreshing connectivity status for devices in list")
+                    selectedDevice?.let { deviceViewModel.checkIsOffline(it) }
+                    delay(180000)
+                }
+            }
         }
     }
 
@@ -136,20 +158,39 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
                 )
             }
             Spacer(modifier = Modifier.weight(1f))
+            Icon(
+                imageVector = Icons.Rounded.Refresh,
+                contentDescription = "Refresh",
+                tint = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.clickable {
+                    // Refresh the device details
+                    Log.d("DeviceDetailView", "Refreshing device details")
+                    selectedDevice?.let { deviceViewModel.checkIsOffline(it) }
+                }
+            )
             // Show the settings icon if the user is the owner of the device
             var isOwner = false
             selectedOwner?.ownership?.forEach { ownership ->
                 if (ownership.mac == selectedDeviceMac && ownership.type == "owner") isOwner = true
             }
             if (isOwner) {
+                Spacer(Modifier.width(16.dp))
                 Icon(
                     painter = painterResource(R.drawable.settings_24dp),
                     contentDescription = "Settings",
                     tint = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.clickable {
-                        // Navigate to the device settings view
-                        selectedDevice?.let { navigator.navigate(DeviceSettingsViewDestination(it)) }
-                    }
+                    modifier = Modifier
+                        .clickable {
+                            // Navigate to the device settings view
+                            selectedDevice?.let {
+                                navigator.navigate(
+                                    DeviceSettingsViewDestination(
+                                        it
+                                    )
+                                )
+                            }
+                        }
+                        .padding(start = 16.dp)
                 )
             }
         }
@@ -163,12 +204,20 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
                     shape = MaterialTheme.shapes.medium
                 )
         ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp, end = 16.dp),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                DeviceConnectivityStatusIcon(selectedDevice?.status ?: DeviceStatus.OFFLINE)
+            }
             // Device name
             Text(
                 text = selectedDevice?.name ?: "Unknown device",
                 style = MaterialTheme.typography.headlineLarge,
                 modifier = Modifier
-                    .padding(start = 16.dp, top = 50.dp, end = 16.dp, bottom = 50.dp)
+                    .padding(start = 16.dp, top = 20.dp, end = 16.dp, bottom = 50.dp)
                     .fillMaxWidth(),
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                 textAlign = TextAlign.Center
@@ -262,7 +311,6 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
                         status = RequestStatus.WAITING,
                         action = "1CUP"
                     )
-                    Toast.makeText(context, "1 Coffee requested", Toast.LENGTH_SHORT).show()
                     requestViewModel.addRequest(request)
                 }
             ) {
@@ -291,7 +339,6 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
                         status = RequestStatus.WAITING,
                         action = "2CUP"
                     )
-                    Toast.makeText(context, "2 Coffees requested", Toast.LENGTH_SHORT).show()
                     requestViewModel.addRequest(request)
                 }
             ) {
@@ -321,7 +368,6 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
                 ),
                 shape = MaterialTheme.shapes.medium,
                 onClick = {
-                    Toast.makeText(context, "Schedule request", Toast.LENGTH_SHORT).show()
                     showDialog = true
                 }
             ) {

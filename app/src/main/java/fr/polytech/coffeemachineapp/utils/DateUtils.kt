@@ -17,5 +17,9 @@ class DateUtils {
             val date = format.parse(dateString)
             return date?.time?.div(1000) ?: 0 // Convert milliseconds to seconds
         }
+
+        fun isOver(timestamp: Long, offset: Long): Boolean {
+            return timestamp + offset < Date().time/1000
+        }
     }
 }
