@@ -179,7 +179,7 @@ fun RequestLogItem(requestLog: RequestLog) {
             .height(100.dp)
             .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
             .background(
-                color = if (LogStatus.isError(requestLog.status))
+                color = if (requestLog.status != LogStatus.SUCCESS)
                     colorScheme.tertiaryContainer
                 else
                     colorScheme.secondaryContainer,
@@ -192,7 +192,7 @@ fun RequestLogItem(requestLog: RequestLog) {
         Column(modifier = Modifier.padding(start = 16.dp)) {
             ActionDisplay(
                 requestLog.action,
-                color = if (LogStatus.isError(requestLog.status))
+                color = if (requestLog.status != LogStatus.SUCCESS)
                     colorScheme.onTertiaryContainer
                 else
                     colorScheme.onSecondaryContainer
@@ -200,7 +200,7 @@ fun RequestLogItem(requestLog: RequestLog) {
             Text(
                 text = DateUtils.formatDate(requestLog.timestamp),
                 style = MaterialTheme.typography.labelLarge,
-                color = if (LogStatus.isError(requestLog.status))
+                color = if (requestLog.status != LogStatus.SUCCESS)
                     colorScheme.onTertiaryContainer
                 else
                     colorScheme.onSecondaryContainer
@@ -213,20 +213,17 @@ fun RequestLogItem(requestLog: RequestLog) {
             LogStatusIcon(
                 requestLog.status,
                 modifier = Modifier.size(30.dp),
-                color = if (LogStatus.isError(requestLog.status))
+                color = if (requestLog.status != LogStatus.SUCCESS)
                     colorScheme.onTertiaryContainer
                 else
                     colorScheme.onSecondaryContainer
             )
-            if (LogStatus.isError(requestLog.status)) {
+            if (requestLog.status != LogStatus.SUCCESS) {
                 Text(
                     text = requestLog.status.toString(),
                     modifier = Modifier.padding(start = 8.dp),
                     style = MaterialTheme.typography.titleMedium,
-                    color = if (LogStatus.isError(requestLog.status))
-                        colorScheme.onTertiaryContainer
-                    else
-                        colorScheme.onSecondaryContainer
+                    color = colorScheme.onTertiaryContainer
                 )
             }
         }
@@ -283,7 +280,7 @@ fun LogStatusIcon(status: LogStatus, modifier: Modifier = Modifier, color: Color
             modifier = modifier,
             tint = color
         )
-        LogStatus.isError(status) -> Icon(
+        status != LogStatus.SUCCESS -> Icon(
             painter = painterResource(id = R.drawable.error_24dp),
             contentDescription = "log status : $status",
             modifier = modifier,

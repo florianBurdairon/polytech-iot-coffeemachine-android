@@ -12,12 +12,6 @@ class DateUtils {
             return format.format(date)
         }
 
-        fun parseDate(dateString: String): Long {
-            val format = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
-            val date = format.parse(dateString)
-            return date?.time?.div(1000) ?: 0 // Convert milliseconds to seconds
-        }
-
         fun isOver(timestamp: Long, offset: Long): Boolean {
             return timestamp + offset < Date().time/1000
         }

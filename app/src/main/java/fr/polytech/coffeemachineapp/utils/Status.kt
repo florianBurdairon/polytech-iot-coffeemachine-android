@@ -26,11 +26,6 @@ enum class DeviceStatus {
             return "Unknown"
         }
     };
-    companion object {
-        fun isOnline(status: DeviceStatus): Boolean {
-            return status == ONLINE
-        }
-    }
 }
 
 enum class RequestStatus {
@@ -107,9 +102,4 @@ enum class LogStatus {
             return "Unknown"
         }
     };
-    companion object {
-        fun isError(status: LogStatus): Boolean {
-            return status != SUCCESS
-        }
-    }
 }

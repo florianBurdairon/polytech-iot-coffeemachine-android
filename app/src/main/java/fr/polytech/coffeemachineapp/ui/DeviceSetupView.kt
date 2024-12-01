@@ -206,19 +206,20 @@ fun DeviceSetupView(navigator: DestinationsNavigator, scope: CoroutineScope, sna
                                 password,
                                 onWriteSuccess = {
                                     // Send the wifi credential successful, add the device to the database
-                                    if (device != null) {
-                                        if(device!!.status != DeviceStatus.RESET_WIFI) {
-                                            deviceViewModel.addDevice(device!!.copy(name = deviceName))
-                                            (authState as AuthState.Authenticated).user?.let {
-                                                ownershipViewModel.addOwner(
-                                                    it.uid, device!!.mac
-                                                )
-                                            }
-                                            Log.d("BLEViewModel", "Device added to database")
+                                    if (device != null && device!!.status == DeviceStatus.RESET) {
+                                        deviceViewModel.addDevice(device!!.copy(name = deviceName))
+                                        (authState as AuthState.Authenticated).user?.let {
+                                            ownershipViewModel.addOwner(
+                                                it.uid, device!!.mac
+                                            )
                                         }
-                                        else {
-                                            Log.d("BLEViewModel", "Device already in database")
+                                        Log.d("BLEViewModel", "Device added to database")
+                                        scope.launch {
+                                            navigator.navigate(HomeViewDestination)
                                         }
+                                    }
+                                    else if(device != null && device!!.status == DeviceStatus.RESET_WIFI) {
+                                        Log.d("BLEViewModel", "Device already in database")
                                         scope.launch {
                                             navigator.navigate(HomeViewDestination)
                                         }

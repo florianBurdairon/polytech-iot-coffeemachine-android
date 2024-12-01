@@ -66,7 +66,7 @@ fun StatsView(navigator: DestinationsNavigator) {
                     if (requestLogs.isNotEmpty()) {
                         PieChartDeviceUsage(
                             devices,
-                            requestLogs.filter { it.uid == (authState as AuthState.Authenticated).user?.uid && !LogStatus.isError(it.status) }
+                            requestLogs.filter { it.uid == (authState as AuthState.Authenticated).user?.uid && it.status == LogStatus.SUCCESS  }
                         )
                     }
                     else {
@@ -81,7 +81,7 @@ fun StatsView(navigator: DestinationsNavigator) {
                         )
                     if (requestLogs.isNotEmpty()) {
                         ColumnChartCoffeeConsumption(
-                            requestLogs.filter { it.uid == (authState as AuthState.Authenticated).user?.uid && !LogStatus.isError(it.status) }
+                            requestLogs.filter { it.uid == (authState as AuthState.Authenticated).user?.uid && it.status == LogStatus.SUCCESS }
                         )
                     }
                     else {
