@@ -97,7 +97,7 @@ fun RequestList(
             }
         }
         else {
-            items(requestLogs) { requestLog ->
+            items(requestLogs.sortedByDescending { it.timestamp }) { requestLog ->
                 RequestLogItem(requestLog)
             }
         }
