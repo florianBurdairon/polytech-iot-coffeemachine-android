@@ -7,6 +7,7 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.GenericTypeIndicator
 import com.google.firebase.database.ValueEventListener
+import fr.polytech.coffeemachineapp.model.Device
 import fr.polytech.coffeemachineapp.model.Request
 import fr.polytech.coffeemachineapp.model.RequestRaw
 import fr.polytech.coffeemachineapp.repository.FirebaseRepository
@@ -162,17 +163,17 @@ class RequestViewModel(private val firebaseRepository: FirebaseRepository) : Vie
         }
     }
 
-    fun checkIsOver(request: Request, onOver: (Request) -> Unit) {
+    fun checkIsOver(request: Request, device: Device?, onOver: (Request) -> Unit) {
         // If the request is more than 5 minutes old, delete it and create an ERROR_OFFLINE log
-        if (DateUtils.isOver(request.timestamp, 300)) {
+        if (device != null && DateUtils.isOver(device.lastOnline, 180) && DateUtils.isOver(request.timestamp, 300)) {
             removeRequest(request)
             onOver(request)
         }
     }
 
-    fun checkIsOver(requests: List<Request>, onOver: (Request) -> Unit) {
+    fun checkIsOver(requests: List<Request>, device: Device?, onOver: (Request) -> Unit) {
         for (request in requests) {
-            checkIsOver(request, onOver)
+            checkIsOver(request, device, onOver)
         }
     }
 }

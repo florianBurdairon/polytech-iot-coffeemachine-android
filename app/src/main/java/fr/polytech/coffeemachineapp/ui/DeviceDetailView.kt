@@ -120,7 +120,7 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
                 while (authState is AuthState.Authenticated) {
                     Log.d("Lifecycle", "Refreshing requests status")
                     currentRequest?.let {
-                        requestViewModel.checkIsOver(it) { request ->
+                        requestViewModel.checkIsOver(it, selectedDevice) { request ->
                             Log.d("Lifecycle", "Current request is over")
                             val log = RequestLog(
                                 mac = request.mac,
@@ -133,7 +133,7 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
                         }
                     }
                     nextRequest?.let {
-                        requestViewModel.checkIsOver(it) { request ->
+                        requestViewModel.checkIsOver(it, selectedDevice) { request ->
                             Log.d("Lifecycle", "Next request is over")
                             val log = RequestLog(
                                 mac = request.mac,
@@ -145,7 +145,7 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
                             requestLogViewModel.addRequestLog(log)
                         }
                     }
-                    requestViewModel.checkIsOver(requests) { request ->
+                    requestViewModel.checkIsOver(requests, selectedDevice) { request ->
                         Log.d("Lifecycle", "Request is over")
                         val log = RequestLog(
                             mac = request.mac,
@@ -214,7 +214,7 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
                     Log.d("DeviceDetailView", "Refreshing device details")
                     selectedDevice?.let { deviceViewModel.checkIsOffline(it) }
                     currentRequest?.let {
-                        requestViewModel.checkIsOver(it) { request ->
+                        requestViewModel.checkIsOver(it, selectedDevice) { request ->
                             Log.d("Lifecycle", "Current request is over")
                             val log = RequestLog(
                                 mac = request.mac,
@@ -227,7 +227,7 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
                         }
                     }
                     nextRequest?.let {
-                        requestViewModel.checkIsOver(it) { request ->
+                        requestViewModel.checkIsOver(it, selectedDevice) { request ->
                             Log.d("Lifecycle", "Next request is over")
                             val log = RequestLog(
                                 mac = request.mac,
@@ -239,7 +239,7 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
                             requestLogViewModel.addRequestLog(log)
                         }
                     }
-                    requestViewModel.checkIsOver(requests) { request ->
+                    requestViewModel.checkIsOver(requests, selectedDevice) { request ->
                         Log.d("Lifecycle", "A request from the list is over")
                         val log = RequestLog(
                             mac = request.mac,
