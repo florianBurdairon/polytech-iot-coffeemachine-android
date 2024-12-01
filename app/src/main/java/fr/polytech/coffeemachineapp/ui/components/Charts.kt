@@ -62,7 +62,7 @@ fun PieChartDeviceUsage(devices: List<Device>, logs: List<RequestLog>) {
                 ZoneOffset.UTC).epochSecond
 
             // Check if the log is in the last 7 days
-            logDate >= currentDate - 7 * 24 * 60 * 60 && logDate <= currentDate
+            logDate >= currentDate - 7 * 24 * 3600 && logDate <= currentDate + 24 * 3600
         }
         // Calculate the total number of requests for each device
         val deviceRequestLogs = mutableMapOf<String, Double>()
@@ -160,7 +160,7 @@ fun ColumnChartCoffeeConsumption(logs: List<RequestLog>) {
 
             // Check if the log is in the last 7 days
             Log.d("ColumnChartCoffeeConsumption", "Log date: $logDate, current date: $currentDate, less 7 days ago: ${logDate >= currentDate - 7 * 24 * 60 * 60}")
-            logDate >= currentDate - 7 * 24 * 60 * 60 && logDate <= currentDate
+            logDate >= currentDate - 7 * 24 * 3600 && logDate <= currentDate + 24 * 3600
         }.sortedBy { it.timestamp }
         Log.d("ColumnChartCoffeeConsumption", "Logs: ${lastWeekLogs.size}")
         Log.d("ColumnChartCoffeeConsumption", "Last week logs: $lastWeekLogs")
