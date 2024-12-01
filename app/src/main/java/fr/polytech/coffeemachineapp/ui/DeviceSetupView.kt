@@ -46,6 +46,7 @@ import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import fr.polytech.coffeemachineapp.R
 import fr.polytech.coffeemachineapp.model.Device
 import fr.polytech.coffeemachineapp.ui.destinations.HomeViewDestination
+import fr.polytech.coffeemachineapp.utils.DeviceStatus
 import fr.polytech.coffeemachineapp.viewmodel.AuthState
 import fr.polytech.coffeemachineapp.viewmodel.AuthViewModel
 import fr.polytech.coffeemachineapp.viewmodel.BLEViewModel
@@ -206,10 +207,17 @@ fun DeviceSetupView(navigator: DestinationsNavigator, scope: CoroutineScope, sna
                                 onWriteSuccess = {
                                     // Send the wifi credential successful, add the device to the database
                                     if (device != null) {
-                                        deviceViewModel.addDevice(device!!.copy(name = deviceName))
-                                        (authState as AuthState.Authenticated).user?.let {
-                                            ownershipViewModel.addOwner(
-                                                it.uid, device!!.mac)
+                                        if(device!!.status != DeviceStatus.RESET_WIFI) {
+                                            deviceViewModel.addDevice(device!!.copy(name = deviceName))
+                                            (authState as AuthState.Authenticated).user?.let {
+                                                ownershipViewModel.addOwner(
+                                                    it.uid, device!!.mac
+                                                )
+                                            }
+                                            Log.d("BLEViewModel", "Device added to database")
+                                        }
+                                        else {
+                                            Log.d("BLEViewModel", "Device already in database")
                                         }
                                         scope.launch {
                                             navigator.navigate(HomeViewDestination)
