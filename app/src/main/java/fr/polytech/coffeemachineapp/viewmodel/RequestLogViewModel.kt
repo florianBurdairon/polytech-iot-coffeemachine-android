@@ -106,10 +106,4 @@ class RequestLogViewModel(private val firebaseRepository: FirebaseRepository) : 
             )
         }
     }
-
-    fun removeRequestLog(requestLog: RequestLog) {
-        viewModelScope.launch {
-            firebaseRepository.removeData("$REQUEST_LOGS_PATH/${requestLog.uid}/${requestLog.timestamp}")
-        }
-    }
 }
