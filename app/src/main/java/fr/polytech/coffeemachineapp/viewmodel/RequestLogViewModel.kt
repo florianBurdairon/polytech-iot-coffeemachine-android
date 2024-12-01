@@ -46,6 +46,34 @@ class RequestLogViewModel(private val firebaseRepository: FirebaseRepository) : 
         }
     }
 
+    private inner class AllRequestLogListener(private val requestLogs: MutableStateFlow<List<RequestLog>>) : ValueEventListener {
+        override fun onDataChange(dataSnapshot: DataSnapshot) {
+            val logsList = mutableListOf<RequestLog>()
+            dataSnapshot.children.forEach { deviceSnapshot ->
+                deviceSnapshot.children.forEach { logsForUserSnapshot ->
+                    val requestLog = logsForUserSnapshot.getValue(RequestLogRaw::class.java)
+                    if (requestLog != null) {
+                        logsList.add(
+                            RequestLog(
+                                requestLog.mac,
+                                requestLog.uid,
+                                requestLog.action,
+                                LogStatus.valueOf(requestLog.status),
+                                requestLog.timestamp
+                            )
+                        )
+                        requestLogs.update { logsList }
+                    }
+                }
+            }
+            Log.d("Firebase", "All request logs: ${requestLogs.value.size}")
+        }
+
+        override fun onCancelled(error: DatabaseError) {
+            Log.e("Firebase", "Error: ${error.message}")
+        }
+    }
+
     private var listenerMap = mutableMapOf<String, ValueEventListener>()
 
     fun addRequestLogListener(uid: String, mac: String) {
@@ -56,6 +84,18 @@ class RequestLogViewModel(private val firebaseRepository: FirebaseRepository) : 
 
     fun removeRequestLogListener(uid: String, mac: String) {
         listenerMap[mac]?.let { firebaseRepository.removeListener("$REQUEST_LOGS_PATH/$uid", it) }
+        listenerMap.remove(mac)
+    }
+
+    fun addAllRequestLogListener() {
+        val allRequestLogsListener = AllRequestLogListener(_requestLogs)
+        listenerMap["all"] = allRequestLogsListener
+        listenerMap["all"]?.let { firebaseRepository.addListener(REQUEST_LOGS_PATH, it) }
+    }
+
+    fun removeAllRequestLogListener() {
+        listenerMap["all"]?.let { firebaseRepository.removeListener(REQUEST_LOGS_PATH, it) }
+        listenerMap.remove("all")
     }
 
     fun addRequestLog(requestLog: RequestLog) {

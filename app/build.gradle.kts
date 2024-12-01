@@ -53,6 +53,7 @@ android {
 }
 
 dependencies {
+    implementation (libs.compose.charts)
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.gson)
     implementation(libs.play.services.code.scanner)

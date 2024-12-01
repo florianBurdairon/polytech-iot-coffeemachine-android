@@ -21,45 +21,80 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import fr.polytech.coffeemachineapp.ui.components.ColumnChartCoffeeConsumption
+import fr.polytech.coffeemachineapp.ui.components.PieChartDeviceUsage
 import fr.polytech.coffeemachineapp.ui.destinations.LoginViewDestination
 import fr.polytech.coffeemachineapp.viewmodel.AuthState
 import fr.polytech.coffeemachineapp.viewmodel.AuthViewModel
 import fr.polytech.coffeemachineapp.viewmodel.DeviceViewModel
+import fr.polytech.coffeemachineapp.viewmodel.RequestLogViewModel
 import org.koin.androidx.compose.getViewModel
 
 @Destination
 @Composable
 fun StatsView(navigator: DestinationsNavigator) {
+    // Initialize the view models
     val authViewModel: AuthViewModel = getViewModel()
-    val authState by authViewModel.authState.collectAsState()
     val deviceViewModel: DeviceViewModel = getViewModel()
-    val deviceState by deviceViewModel.devices.collectAsState()
+    val requestLogViewModel: RequestLogViewModel = getViewModel()
+
+    // Collect the state from the view models
+    val authState by authViewModel.authState.collectAsState()
+    val devices by deviceViewModel.devices.collectAsState()
+    val requestLogs by requestLogViewModel.requestLogs.collectAsState()
 
     DisposableEffect(Unit) {
         deviceViewModel.getDevices()
+        requestLogViewModel.addAllRequestLogListener()
         onDispose {
             deviceViewModel.removeDevices()
+            requestLogViewModel.removeAllRequestLogListener()
         }
     }
-
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        when (authState) {
-            is AuthState.Authenticated -> {
-                LazyColumn {
-                    items(deviceState.size) { deviceIndex ->
-                        val device = deviceState[deviceIndex]
-                        Text(text = "Device $deviceIndex :" +
-                                "\n\t${device.name}" +
-                                "\n\t${device.mac}" +
-                                "\n\t${device.status}")
+    when (authState) {
+        is AuthState.Authenticated -> {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize().padding(16.dp),
+            ) {
+                item {
+                    Text(
+                        text = "Device Usage",
+                        style = MaterialTheme.typography.headlineLarge,
+                        modifier = Modifier.padding(top = 16.dp, bottom = 16.dp)
+                    )
+                    if (requestLogs.isNotEmpty()) {
+                        PieChartDeviceUsage(
+                            devices,
+                            requestLogs.filter { it.uid == (authState as AuthState.Authenticated).user?.uid }
+                        )
+                    }
+                    else {
+                        Text(text = "No data", style = MaterialTheme.typography.titleMedium)
+                    }
+                }
+                item {
+                    Text(
+                        text = "Coffee Consumption",
+                        style = MaterialTheme.typography.headlineLarge,
+                        modifier = Modifier.padding(top = 16.dp, bottom = 16.dp)
+                        )
+                    if (requestLogs.isNotEmpty()) {
+                        ColumnChartCoffeeConsumption(
+                            requestLogs.filter { it.uid == (authState as AuthState.Authenticated).user?.uid }
+                        )
+                    }
+                    else {
+                        Text(text = "No data", style = MaterialTheme.typography.titleMedium)
                     }
                 }
             }
-            else -> {
+        }
+        else -> {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
                 ElevatedButton(
                     onClick = {
                         navigator.navigate(LoginViewDestination)
