@@ -60,7 +60,14 @@ fun RequestList(
                 }
             }
         }
-        if (requests.isEmpty()) {
+        if (requests.isNotEmpty()) {
+            items(requests) { request ->
+                RequestItem(request) {
+                    onCancel(request)
+                }
+            }
+        }
+        if (requests.isEmpty() && currentRequest == null && nextRequest == null) {
             item {
                 Text(
                     text = "No requests",
@@ -68,13 +75,6 @@ fun RequestList(
                     color = colorScheme.onBackground,
                     modifier = Modifier.padding(16.dp)
                 )
-            }
-        }
-        else {
-            items(requests) { request ->
-                RequestItem(request) {
-                    onCancel(request)
-                }
             }
         }
         item {

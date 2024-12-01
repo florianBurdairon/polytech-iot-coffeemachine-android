@@ -53,9 +53,20 @@ fun PieChartDeviceUsage(devices: List<Device>, logs: List<RequestLog>) {
     val pieSelectedColor = MaterialTheme.colorScheme.primary
 
     LaunchedEffect(devices, logs) {
+        val lastWeekLogs = logs.filter { log ->
+            val logDate = Date(log.timestamp * 1000).toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().toInstant(
+                ZoneOffset.UTC).epochSecond
+
+            // Get date at start of the current day
+            val currentDate = Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().atStartOfDay().toInstant(
+                ZoneOffset.UTC).epochSecond
+
+            // Check if the log is in the last 7 days
+            logDate >= currentDate - 7 * 24 * 60 * 60 && logDate <= currentDate
+        }
         // Calculate the total number of requests for each device
         val deviceRequestLogs = mutableMapOf<String, Double>()
-        for (log in logs) {
+        for (log in lastWeekLogs) {
             val device = devices.find { it.mac == log.mac }
             val deviceMac = device?.mac ?: "Other"
             if (deviceRequestLogs.containsKey(deviceMac)) {
@@ -73,11 +84,16 @@ fun PieChartDeviceUsage(devices: List<Device>, logs: List<RequestLog>) {
             mutableData.add(
                 Pie(
                     label = key,
-                    data = value / logs.size * 100,
+                    data = value / lastWeekLogs.size * 100,
                     color = pieColor,
                     selectedColor = pieSelectedColor
                 )
             )
+        }
+        if(mutableData.size == 1) {
+            // Update the only to be selected
+            mutableData[0] = mutableData[0].copy(selected = true)
+            selectedPie = mutableData[0]
         }
         data = mutableData
     }
@@ -98,7 +114,7 @@ fun PieChartDeviceUsage(devices: List<Device>, logs: List<RequestLog>) {
                 println("${clickedPie.label} Clicked")
                 data = data.map { pie -> pie.copy(selected = pie == clickedPie) }.toMutableList()
             },
-            selectedScale = 1.2f,
+            selectedScale = 1.1f,
             selectedPaddingDegree = 5f,
             spaceDegree = 5f,
             scaleAnimEnterSpec = spring(
@@ -189,10 +205,13 @@ fun ColumnChartCoffeeConsumption(logs: List<RequestLog>) {
             modifier = Modifier.fillMaxWidth()
         ) {
             item {
+                val barNumber = data.size
+                val chartWidth = if(barNumber < 8) 350.dp else (100 + barNumber * 50).dp
+                Log.d("ColumnChartCoffeeConsumption", "Chart width: $chartWidth")
                 ColumnChart(
                     modifier = Modifier
                         .height(300.dp)
-                        .width(500.dp)
+                        .width(chartWidth)
                         .padding(start = 20.dp, end = 20.dp, bottom = 50.dp),
                     data = data,
                     labelProperties = LabelProperties(
@@ -202,8 +221,6 @@ fun ColumnChartCoffeeConsumption(logs: List<RequestLog>) {
                             fontSize = 12.sp,
                             textAlign = TextAlign.Center
                         ),
-//                        forceRotation = true,
-//                        rotationDegreeOnSizeConflict = -90f,
                         padding = 8.dp
                     ),
                     indicatorProperties = HorizontalIndicatorProperties(

@@ -42,6 +42,7 @@ import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import fr.polytech.coffeemachineapp.R
 import fr.polytech.coffeemachineapp.model.Request
+import fr.polytech.coffeemachineapp.model.RequestLog
 import fr.polytech.coffeemachineapp.ui.components.DeviceConnectivityStatusIcon
 import fr.polytech.coffeemachineapp.ui.components.RequestList
 import fr.polytech.coffeemachineapp.ui.components.RequestStatusIcon
@@ -49,6 +50,7 @@ import fr.polytech.coffeemachineapp.ui.components.ScheduleRequestDialog
 import fr.polytech.coffeemachineapp.ui.destinations.DeviceSettingsViewDestination
 import fr.polytech.coffeemachineapp.ui.destinations.HomeViewDestination
 import fr.polytech.coffeemachineapp.utils.DeviceStatus
+import fr.polytech.coffeemachineapp.utils.LogStatus
 import fr.polytech.coffeemachineapp.utils.RequestStatus
 import fr.polytech.coffeemachineapp.viewmodel.AuthState
 import fr.polytech.coffeemachineapp.viewmodel.AuthViewModel
@@ -114,6 +116,53 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
             }
         }
     }
+    LaunchedEffect(lifecycleOwner, requests, currentRequest, nextRequest) {
+        lifecycleOwner.lifecycleScope.launch {
+            lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                while (authState is AuthState.Authenticated) {
+                    Log.d("Lifecycle", "Refreshing requests status")
+                    currentRequest?.let {
+                        requestViewModel.checkIsOver(it) { request ->
+                            Log.d("Lifecycle", "Current request is over")
+                            val log = RequestLog(
+                                mac = request.mac,
+                                uid = request.uid,
+                                action = request.action,
+                                status = LogStatus.ERROR_OFFLINE,
+                                timestamp = request.timestamp
+                            )
+                            requestLogViewModel.addRequestLog(log)
+                        }
+                    }
+                    nextRequest?.let {
+                        requestViewModel.checkIsOver(it) { request ->
+                            Log.d("Lifecycle", "Next request is over")
+                            val log = RequestLog(
+                                mac = request.mac,
+                                uid = request.uid,
+                                action = request.action,
+                                status = LogStatus.ERROR_OFFLINE,
+                                timestamp = request.timestamp
+                            )
+                            requestLogViewModel.addRequestLog(log)
+                        }
+                    }
+                    requestViewModel.checkIsOver(requests) { request ->
+                        Log.d("Lifecycle", "Request is over")
+                        val log = RequestLog(
+                            mac = request.mac,
+                            uid = request.uid,
+                            action = request.action,
+                            status = LogStatus.ERROR_OFFLINE,
+                            timestamp = request.timestamp
+                        )
+                        requestLogViewModel.addRequestLog(log)
+                    }
+                    delay(300000)
+                }
+            }
+        }
+    }
 
     // Check if the user is authenticated
     if (authState !is AuthState.Authenticated) {
@@ -166,6 +215,43 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
                     // Refresh the device details
                     Log.d("DeviceDetailView", "Refreshing device details")
                     selectedDevice?.let { deviceViewModel.checkIsOffline(it) }
+                    currentRequest?.let {
+                        requestViewModel.checkIsOver(it) { request ->
+                            Log.d("Lifecycle", "Current request is over")
+                            val log = RequestLog(
+                                mac = request.mac,
+                                uid = request.uid,
+                                action = request.action,
+                                status = LogStatus.ERROR_OFFLINE,
+                                timestamp = request.timestamp
+                            )
+                            requestLogViewModel.addRequestLog(log)
+                        }
+                    }
+                    nextRequest?.let {
+                        requestViewModel.checkIsOver(it) { request ->
+                            Log.d("Lifecycle", "Next request is over")
+                            val log = RequestLog(
+                                mac = request.mac,
+                                uid = request.uid,
+                                action = request.action,
+                                status = LogStatus.ERROR_OFFLINE,
+                                timestamp = request.timestamp
+                            )
+                            requestLogViewModel.addRequestLog(log)
+                        }
+                    }
+                    requestViewModel.checkIsOver(requests) { request ->
+                        Log.d("Lifecycle", "A request from the list is over")
+                        val log = RequestLog(
+                            mac = request.mac,
+                            uid = request.uid,
+                            action = request.action,
+                            status = LogStatus.ERROR_OFFLINE,
+                            timestamp = request.timestamp
+                        )
+                        requestLogViewModel.addRequestLog(log)
+                    }
                 }
             )
             // Show the settings icon if the user is the owner of the device
@@ -307,11 +393,11 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
                     val request = Request(
                         mac = selectedDeviceMac,
                         uid = (authState as AuthState.Authenticated).user?.uid ?: "",
-                        timestamp = System.currentTimeMillis()/1000,
+                        timestamp = System.currentTimeMillis()/1000/60*60,
                         status = RequestStatus.WAITING,
                         action = "1CUP"
                     )
-                    requestViewModel.addRequest(request)
+                    requestViewModel.addRequest(request, true)
                 }
             ) {
                 Icon(painter = painterResource(id = R.drawable.local_cafe), contentDescription = "1 Coffee", tint = MaterialTheme.colorScheme.onPrimaryContainer)
@@ -335,11 +421,11 @@ fun DeviceDetailView(navigator: DestinationsNavigator, mac: String) {
                     val request = Request(
                         mac = selectedDeviceMac,
                         uid = (authState as AuthState.Authenticated).user?.uid ?: "",
-                        timestamp = System.currentTimeMillis()/1000,
+                        timestamp = System.currentTimeMillis()/1000/60*60,
                         status = RequestStatus.WAITING,
                         action = "2CUP"
                     )
-                    requestViewModel.addRequest(request)
+                    requestViewModel.addRequest(request, true)
                 }
             ) {
                 Row {

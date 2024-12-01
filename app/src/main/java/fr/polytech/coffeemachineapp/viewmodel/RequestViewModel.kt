@@ -5,11 +5,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.GenericTypeIndicator
 import com.google.firebase.database.ValueEventListener
 import fr.polytech.coffeemachineapp.model.Request
 import fr.polytech.coffeemachineapp.model.RequestRaw
 import fr.polytech.coffeemachineapp.repository.FirebaseRepository
 import fr.polytech.coffeemachineapp.utils.Constant.Companion.REQUESTS_PATH
+import fr.polytech.coffeemachineapp.utils.DateUtils
 import fr.polytech.coffeemachineapp.utils.RequestStatus
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -91,6 +93,16 @@ class RequestViewModel(private val firebaseRepository: FirebaseRepository) : Vie
         }
     }
 
+    private fun forceUpdateList() {
+        Log.d("Firebase", "Force update list")
+        viewModelScope.launch {
+            val typeIndicator = object : GenericTypeIndicator<List<RequestRaw>>() {}
+            val rawList = firebaseRepository.getData("$REQUESTS_PATH/${currentRequest.value?.mac}/list", typeIndicator)
+            val list = rawList?.map { Request(it.mac, it.uid, it.action, RequestStatus.valueOf(it.status), it.timestamp) }
+            _requests.update { list ?: emptyList() }
+        }
+    }
+
     private fun setCurrentRequest(request: Request) {
         viewModelScope.launch {
             firebaseRepository.sendData(request, "$REQUESTS_PATH/${request.mac}/current")
@@ -105,7 +117,10 @@ class RequestViewModel(private val firebaseRepository: FirebaseRepository) : Vie
         else {
             viewModelScope.launch {
                 // If new request is before next request, replace next request  by new request and add the old next request to the list of requests
-                if (nextRequest.value?.let { request.timestamp < it.timestamp } != false) {
+                if (nextRequest.value?.let { request.timestamp == it.timestamp } != false) {
+                    firebaseRepository.sendData(request, "$REQUESTS_PATH/${request.mac}/next")
+                }
+                else if (nextRequest.value?.let { request.timestamp < it.timestamp } != false) {
                     val oldNextRequest = nextRequest.value
                     firebaseRepository.sendData(request, "$REQUESTS_PATH/${request.mac}/next")
                     oldNextRequest?.let {
@@ -128,15 +143,36 @@ class RequestViewModel(private val firebaseRepository: FirebaseRepository) : Vie
 
     fun removeRequest(request: Request) {
         viewModelScope.launch {
-            if (request == nextRequest.value) {
-                val next = requests.value.minByOrNull { it.timestamp }
-                next?.let { firebaseRepository.sendData(it, "$REQUESTS_PATH/${request.mac}/next") } ?:
+            when(request) {
+                currentRequest.value -> {
+                    firebaseRepository.sendData("null", "$REQUESTS_PATH/${request.mac}/current")
+                }
+                nextRequest.value -> {
+                    val next = requests.value.minByOrNull { it.timestamp }
+                    next?.let { firebaseRepository.sendData(it, "$REQUESTS_PATH/${request.mac}/next") } ?:
                     firebaseRepository.sendData("null", "$REQUESTS_PATH/${request.mac}/next")
-                next?.let { firebaseRepository.removeData("$REQUESTS_PATH/${request.mac}/list/${it.timestamp}") }
+                    next?.let { firebaseRepository.removeData("$REQUESTS_PATH/${request.mac}/list/${it.timestamp}") }
+                    forceUpdateList()
+                }
+                else -> {
+                    firebaseRepository.removeData("$REQUESTS_PATH/${request.mac}/list/${request.timestamp}")
+                    forceUpdateList()
+                }
             }
-            else {
-                firebaseRepository.removeData("$REQUESTS_PATH/${request.mac}/list/${request.timestamp}")
-            }
+        }
+    }
+
+    fun checkIsOver(request: Request, onOver: (Request) -> Unit) {
+        // If the request is more than 5 minutes old, delete it and create an ERROR_OFFLINE log
+        if (DateUtils.isOver(request.timestamp, 300)) {
+            removeRequest(request)
+            onOver(request)
+        }
+    }
+
+    fun checkIsOver(requests: List<Request>, onOver: (Request) -> Unit) {
+        for (request in requests) {
+            checkIsOver(request, onOver)
         }
     }
 }

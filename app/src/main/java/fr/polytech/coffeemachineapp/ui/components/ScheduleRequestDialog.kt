@@ -137,7 +137,7 @@ fun ScheduleRequestDialog(showDialog: Boolean, device: Device?, uid : String?, o
                         val request = Request(
                             mac = device.mac,
                             uid = uid,
-                            timestamp = timestamp,
+                            timestamp = timestamp / 60 * 60,
                             status = RequestStatus.WAITING,
                             action = selectedAction
                         )

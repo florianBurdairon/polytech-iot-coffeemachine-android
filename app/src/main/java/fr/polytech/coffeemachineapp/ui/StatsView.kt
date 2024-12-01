@@ -24,6 +24,7 @@ import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import fr.polytech.coffeemachineapp.ui.components.ColumnChartCoffeeConsumption
 import fr.polytech.coffeemachineapp.ui.components.PieChartDeviceUsage
 import fr.polytech.coffeemachineapp.ui.destinations.LoginViewDestination
+import fr.polytech.coffeemachineapp.utils.LogStatus
 import fr.polytech.coffeemachineapp.viewmodel.AuthState
 import fr.polytech.coffeemachineapp.viewmodel.AuthViewModel
 import fr.polytech.coffeemachineapp.viewmodel.DeviceViewModel
@@ -65,7 +66,7 @@ fun StatsView(navigator: DestinationsNavigator) {
                     if (requestLogs.isNotEmpty()) {
                         PieChartDeviceUsage(
                             devices,
-                            requestLogs.filter { it.uid == (authState as AuthState.Authenticated).user?.uid }
+                            requestLogs.filter { it.uid == (authState as AuthState.Authenticated).user?.uid && !LogStatus.isError(it.status) }
                         )
                     }
                     else {
@@ -80,7 +81,7 @@ fun StatsView(navigator: DestinationsNavigator) {
                         )
                     if (requestLogs.isNotEmpty()) {
                         ColumnChartCoffeeConsumption(
-                            requestLogs.filter { it.uid == (authState as AuthState.Authenticated).user?.uid }
+                            requestLogs.filter { it.uid == (authState as AuthState.Authenticated).user?.uid && !LogStatus.isError(it.status) }
                         )
                     }
                     else {
