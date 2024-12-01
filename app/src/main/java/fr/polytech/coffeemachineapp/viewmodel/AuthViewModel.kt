@@ -107,7 +107,7 @@ class AuthViewModel(private val auth: FirebaseAuth) : ViewModel() {
             .build()
 
         viewModelScope.launch {
-            _authState.update { AuthState.Updating(auth.currentUser) }
+            _authState.update { AuthState.Updating }
             user?.updateProfile(profileUpdates)
                 ?.addOnCompleteListener { task ->
                     if (task.isSuccessful) {
@@ -143,7 +143,7 @@ class AuthViewModel(private val auth: FirebaseAuth) : ViewModel() {
 sealed class AuthState {
     data object Unauthenticated : AuthState()
     data object Loading : AuthState()
+    data object Updating : AuthState()
     data class Authenticated(val user: FirebaseUser?) : AuthState()
-    data class Updating(val user: FirebaseUser?) : AuthState()
     data class Error(val message: String) : AuthState()
 }
