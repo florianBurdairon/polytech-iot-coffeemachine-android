@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.GenericTypeIndicator
 import com.google.firebase.database.ValueEventListener
 import fr.polytech.coffeemachineapp.model.Device
 import fr.polytech.coffeemachineapp.model.Request
@@ -62,16 +61,21 @@ class RequestViewModel(private val firebaseRepository: FirebaseRepository) : Vie
                         if (deviceSnapshot.value == "null") {
                             _requests.update { emptyList() }
                         }
-                        val requestList = mutableListOf<Request>()
-                        deviceSnapshot.children.forEach { requestSnapshot ->
-                            val requestRaw = requestSnapshot.getValue(RequestRaw::class.java)
-                            val request = requestRaw?.let { Request(it.mac, it.uid, it.action, RequestStatus.valueOf(it.status),
-                                it.timestamp
-                            ) }
-                            request?.let { requestList.add(it) }
+                        else {
+                            val requestList = mutableListOf<Request>()
+                            deviceSnapshot.children.forEach { requestSnapshot ->
+                                val requestRaw = requestSnapshot.getValue(RequestRaw::class.java)
+                                val request = requestRaw?.let {
+                                    Request(
+                                        it.mac, it.uid, it.action, RequestStatus.valueOf(it.status),
+                                        it.timestamp
+                                    )
+                                }
+                                request?.let { requestList.add(it) }
+                            }
+                            requestList.sortBy { it.timestamp }
+                            _requests.update { requestList }
                         }
-                        requestList.sortBy { it.timestamp }
-                        _requests.update { requestList }
                     }
                     else -> {
                         Log.e("Firebase", "Unknown key: ${deviceSnapshot.key}")
@@ -102,16 +106,6 @@ class RequestViewModel(private val firebaseRepository: FirebaseRepository) : Vie
             firebaseRepository.sendData("null", "$REQUESTS_PATH/$mac/current")
             firebaseRepository.sendData("null", "$REQUESTS_PATH/$mac/next")
             firebaseRepository.sendData("null", "$REQUESTS_PATH/$mac/list")
-        }
-    }
-
-    private fun forceUpdateList() {
-        Log.d("Firebase", "Force update list")
-        viewModelScope.launch {
-            val typeIndicator = object : GenericTypeIndicator<List<RequestRaw>>() {}
-            val rawList = firebaseRepository.getData("$REQUESTS_PATH/${currentRequest.value?.mac}/list", typeIndicator)
-            val list = rawList?.map { Request(it.mac, it.uid, it.action, RequestStatus.valueOf(it.status), it.timestamp) }
-            _requests.update { list ?: emptyList() }
         }
     }
 
@@ -164,14 +158,15 @@ class RequestViewModel(private val firebaseRepository: FirebaseRepository) : Vie
                     next?.let { firebaseRepository.sendData(it, "$REQUESTS_PATH/${request.mac}/next") } ?:
                     firebaseRepository.sendData("null", "$REQUESTS_PATH/${request.mac}/next")
                     next?.let { firebaseRepository.removeData("$REQUESTS_PATH/${request.mac}/list/${it.timestamp}") }
-                    forceUpdateList()
+                    if(requests.value.size == 1 && requests.value[0] == request) {
+                        firebaseRepository.sendData("null", "$REQUESTS_PATH/${request.mac}/list")
+                    }
                 }
                 else -> {
                     firebaseRepository.removeData("$REQUESTS_PATH/${request.mac}/list/${request.timestamp}")
                     if(requests.value.size == 1 && requests.value[0] == request) {
                         firebaseRepository.sendData("null", "$REQUESTS_PATH/${request.mac}/list")
                     }
-                    forceUpdateList()
                 }
             }
         }
