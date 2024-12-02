@@ -59,6 +59,9 @@ class RequestViewModel(private val firebaseRepository: FirebaseRepository) : Vie
                         }
                     }
                     "list" -> {
+                        if (deviceSnapshot.value == "null") {
+                            _requests.update { emptyList() }
+                        }
                         val requestList = mutableListOf<Request>()
                         deviceSnapshot.children.forEach { requestSnapshot ->
                             val requestRaw = requestSnapshot.getValue(RequestRaw::class.java)
@@ -91,6 +94,14 @@ class RequestViewModel(private val firebaseRepository: FirebaseRepository) : Vie
     fun removeRequestsListener(mac: String) {
         viewModelScope.launch {
             firebaseRepository.removeListener("$REQUESTS_PATH/$mac", requestsListener)
+        }
+    }
+
+    fun initRequests(mac: String) {
+        viewModelScope.launch {
+            firebaseRepository.sendData("null", "$REQUESTS_PATH/$mac/current")
+            firebaseRepository.sendData("null", "$REQUESTS_PATH/$mac/next")
+            firebaseRepository.sendData("null", "$REQUESTS_PATH/$mac/list")
         }
     }
 
@@ -157,6 +168,9 @@ class RequestViewModel(private val firebaseRepository: FirebaseRepository) : Vie
                 }
                 else -> {
                     firebaseRepository.removeData("$REQUESTS_PATH/${request.mac}/list/${request.timestamp}")
+                    if(requests.value.size == 1 && requests.value[0] == request) {
+                        firebaseRepository.sendData("null", "$REQUESTS_PATH/${request.mac}/list")
+                    }
                     forceUpdateList()
                 }
             }

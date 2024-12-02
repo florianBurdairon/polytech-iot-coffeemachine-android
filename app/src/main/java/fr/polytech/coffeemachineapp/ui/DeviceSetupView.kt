@@ -52,6 +52,7 @@ import fr.polytech.coffeemachineapp.viewmodel.AuthViewModel
 import fr.polytech.coffeemachineapp.viewmodel.BLEViewModel
 import fr.polytech.coffeemachineapp.viewmodel.DeviceViewModel
 import fr.polytech.coffeemachineapp.viewmodel.OwnershipViewModel
+import fr.polytech.coffeemachineapp.viewmodel.RequestViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.getViewModel
@@ -64,6 +65,7 @@ fun DeviceSetupView(navigator: DestinationsNavigator, scope: CoroutineScope, sna
     val bleViewModel: BLEViewModel = getViewModel()
     val deviceViewModel: DeviceViewModel = getViewModel()
     val ownershipViewModel: OwnershipViewModel = getViewModel()
+    val requestViewModel: RequestViewModel = getViewModel()
 
     // Get the state from the view models
     val authState by authViewModel.authState.collectAsState()
@@ -213,6 +215,7 @@ fun DeviceSetupView(navigator: DestinationsNavigator, scope: CoroutineScope, sna
                                                 it.uid, device!!.mac
                                             )
                                         }
+                                        requestViewModel.initRequests(device!!.mac)
                                         Log.d("BLEViewModel", "Device added to database")
                                         scope.launch {
                                             navigator.navigate(HomeViewDestination)
