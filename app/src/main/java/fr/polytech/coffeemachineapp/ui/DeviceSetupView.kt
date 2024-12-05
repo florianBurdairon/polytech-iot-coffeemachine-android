@@ -193,6 +193,8 @@ fun DeviceSetupView(navigator: DestinationsNavigator, scope: CoroutineScope, sna
             )
             Button(
                 onClick = {
+                    var isSuccess = false
+
                     // Read the characteristic of the device
                     bleViewModel.readDeviceSetup(
                         bluetoothDevice,
@@ -207,6 +209,8 @@ fun DeviceSetupView(navigator: DestinationsNavigator, scope: CoroutineScope, sna
                                 ssid,
                                 password,
                                 onWriteSuccess = {
+                                    Log.d("BLEViewModel", "Device: $device")
+
                                     // Send the wifi credential successful, add the device to the database
                                     if (device != null && device!!.status == DeviceStatus.RESET) {
                                         deviceViewModel.addDevice(device!!.copy(name = deviceName))
@@ -216,6 +220,7 @@ fun DeviceSetupView(navigator: DestinationsNavigator, scope: CoroutineScope, sna
                                             )
                                         }
                                         requestViewModel.initRequests(device!!.mac)
+                                        isSuccess = true
                                         Log.d("BLEViewModel", "Device added to database")
                                         scope.launch {
                                             navigator.navigate(HomeViewDestination)
@@ -241,8 +246,10 @@ fun DeviceSetupView(navigator: DestinationsNavigator, scope: CoroutineScope, sna
                             )
                         },
                         onReadFailure = {
-                            scope.launch {
-                                snackbarHostState.showSnackbar("Error while reading characteristic")
+                            if (!isSuccess) {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar("Error while reading characteristic")
+                                }
                             }
                         }
                     )
