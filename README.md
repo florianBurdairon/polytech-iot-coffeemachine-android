@@ -8,7 +8,7 @@ Afin de pouvoir tester l'application sur votre smartphone, vous pouvez suivre ce
 En effet le code disponible sur ce dépôt (**coffeeMachine_android**) ne peut directement être compilé sur Android Studio. La connexion à Firebase nécessite de générer une empreinte SHA-1 qui sécurise la connexion entre l'application et Firebase pour l'authentification. Or cette empreinte est propre au PC qui construit l'APK de l'application et doit être saisie manuellement sur la console Firebase.
 
 ### Configuration nécessaire
-Pour fonctionner, l'application doit être installée sur un téléphone possédant un version d'Android contenu entre 12 et 14 (version 15 non testé). Malgré le support d'Android 12, certaines fonctionnalités peuvent ne pas fonctionner correctement notamment l'envoie de données à la machine via Bluetooth Low Energy.
+Pour fonctionner, l'application doit être installée sur un téléphone possédant une version d'Android contenu entre 12 et 14 (version 15 non testé). Malgré le support d'Android 12, certaines fonctionnalités peuvent ne pas fonctionner correctement notamment l'envoie de données à la machine via Bluetooth Low Energy.
 Il faut également que le téléphone supporte le BLE.
 
 ### Autorisations
