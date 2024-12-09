@@ -1,5 +1,7 @@
 # Projet IoT : Coffee Machine - Application Android
 
+> Voici le lien du dépôt Gitlab contenant le rapport complet (README.md) : https://forge.univ-lyon1.fr/fise-24-25-iot/blumet_burdairon_coffeemachine
+
 ## Installation de l'application
 
 ### Téléchargement de l'APK
