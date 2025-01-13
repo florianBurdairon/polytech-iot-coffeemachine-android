@@ -1,5 +1,7 @@
 # Projet IoT : Coffee Machine - Application Android
 
+![Aperçu de l'application](android_app.png)
+
 > Voici le lien du dépôt GitHub contenant le rapport complet (README.md) : [https://github.com/florianBurdairon/polytech-iot-coffeemachine-report](https://github.com/florianBurdairon/polytech-iot-coffeemachine-report)
 
 ## Installation de l'application
